@@ -45,6 +45,6 @@ public class StockInfo {
 	private int userId;
 	// active flag with default, when deleting issue a soft delete 
 	// for forcible delete of row handle in controller
-	@Column(name="active",nullable = false, columnDefinition = "tinyint(1) default 0")
+	@Column(name="active",nullable = false, columnDefinition = "boolean default true")
 	private boolean active = true;
 }
