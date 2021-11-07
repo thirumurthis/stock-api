@@ -1,4 +1,4 @@
-package com.stock.finance.service;
+package com.stock.finance.model.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

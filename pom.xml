@@ -94,37 +94,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<!-- 
-			 <plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-                    <source>8</source>
-                    <target>8</target>
-                    <testSource>8</testSource>
-                    <testTarget>8</testTarget>
-                    <showDeprecation>true</showDeprecation>
-                    <compilerArgument>-Xlint:unchecked</compilerArgument>
-                </configuration>
-			  	
-			   <executions>
-					<execution>
-						<goals>
-							<goal>build-info</goal>
-						</goals>
-						<configuration>
-							<additionalProperties>
-								<encoding.source>${project.build.sourceEncoding}</encoding.source>
-								<encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
-								<java.source>${java.version}</java.source>
-								<java.target>${java.version}</java.target>
-							</additionalProperties>
-						</configuration>
-					</execution>
-				</executions>
-				
-			</plugin>
-			  -->
 		</plugins>
 	</build>
 

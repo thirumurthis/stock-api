@@ -47,7 +47,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 		http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 
-	//*
+	/*
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.inMemoryAuthentication()
@@ -55,7 +55,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 				.and()
 				.withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
 	}
-	//*/
+	*/
 	 @Bean
 	  PasswordEncoder passwordEncoder(){
 	    return new BCryptPasswordEncoder(); // use of NoOpPasswordEncoder is strictly for development purpose only
