@@ -3,6 +3,7 @@ package com.stock.finance.model.api;
 import java.util.List;
 
 import com.stock.finance.model.StockInfo;
+import com.stock.finance.model.StockInfoWrapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,6 @@ import lombok.NoArgsConstructor;
 public class ApiResponse {
 
 	private String status;
-	private List<StockInfo> stockInfo;
+	private List<StockInfoWrapper> stockInfo;
 	
 }

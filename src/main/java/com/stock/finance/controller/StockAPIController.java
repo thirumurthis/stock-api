@@ -1,14 +1,20 @@
 package com.stock.finance.controller;
 
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,14 +23,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stock.finance.model.ComputeStockMetrics;
+import com.stock.finance.model.ComputedStockOuputWrapper;
 import com.stock.finance.model.StockInfo;
-import com.stock.finance.model.api.About;
+import com.stock.finance.model.StockInfoWrapper;
+import com.stock.finance.model.StockWrapper;
 import com.stock.finance.model.api.ApiResponse;
+import com.stock.finance.service.ComputeStockMetricsService;
+import com.stock.finance.service.JWTManagerService;
 import com.stock.finance.service.StockStoreService;
+import com.stock.finance.user.service.UserAccountService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
@@ -44,21 +53,43 @@ public class StockAPIController {
 	@Autowired
 	StockStoreService stockService;
 	
+	@Autowired 
+	JWTManagerService jwtService;
+	
+	@Autowired
+	private UserDetailsService userDetailsService;
+	
+
+	@Autowired
+	private ComputeStockMetricsService computeStockMetricsService;
+	
 	/**
 	 * Prints the list of stocks available in database
 	 * @return
 	 */
 	@GetMapping("/get")
-	public ResponseEntity<List<StockInfo>> getStockDetails() {
+	public ResponseEntity<List<StockInfoWrapper>> getStockInfoFromDataStore(HttpServletRequest request) {
 		try {
-			List<StockInfo> stockInfo = new ArrayList<>();
-
-			stockInfo = stockService.getStocksDetail();
+			
+			//Get the user name based on the token
+			String userName = validateTokenAndGetUserName(request);
+			if(userName == null) {
+				throw new Exception("UserName not exists in database or invalid token provided.");
+			}
+			
+			List<StockInfoWrapper> stockInfoWrapperList = new ArrayList<>();
+			
+			List<StockInfo> stockInfoOutputList= stockService.getStocksDetail(userName);
+			
+			stockInfoWrapperList = stockInfoOutputList.stream()
+					.map(item -> new StockInfoWrapper(item.getSymbol(), item.getAvgStockPrice(), item.getStockCount()))
+					.collect(Collectors.toList());
+			
 			// Use if required - for api handling with http status code
 			//if(stockInfo.isEmpty()) {
 			//	return new ResponseEntity<>(stockInfo,HttpStatus.NO_CONTENT);
 			//}else {
-     			return new ResponseEntity<>(stockInfo, HttpStatus.OK);
+     			return new ResponseEntity<>(stockInfoWrapperList, HttpStatus.OK);
 			//}
 		}catch(Exception e) {
 			log.error("Exception occurred when fetching stock info", e);
@@ -72,11 +103,20 @@ public class StockAPIController {
 	 * @return
 	 */
 	@PostMapping("/add")
-	public ResponseEntity<ApiResponse> addStock(@RequestBody StockInfo stock){
+	public ResponseEntity<ApiResponse> addStock(@RequestBody StockInfoWrapper stock,HttpServletRequest request){
 		ApiResponse response;
 		try {
-			if(stock != null) {
-				StockInfo stockInfo = stockService.storeStockInfo(stock);
+			String userName = validateTokenAndGetUserName(request);
+			if(stock != null && stock.getSymbol() != null) {
+				//Create stock info object from stockinfo wrapper
+				StockInfo inputStockInfo = StockInfo.builder()
+						                            .symbol(stock.getSymbol())
+						                            .stockCount(stock.getStockCount())
+						                            .avgStockPrice(stock.getAvgStockPrice())
+						                            .userName(userName)
+						                            .build();
+				
+				StockInfo stockInfo = stockService.storeStockInfo(inputStockInfo);
 				response = createResponse("Successfully added stock", Optional.of(stockInfo)); 
 				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
 			}else {
@@ -97,18 +137,55 @@ public class StockAPIController {
 	 * @return
 	 */
 	@PostMapping("/add/stocks")
-	public ResponseEntity<ApiResponse> addStocks(@RequestBody List<StockInfo> stock){
+	public ResponseEntity<ApiResponse> addStocks(@RequestBody List<StockInfoWrapper> stockList, HttpServletRequest request){
 		ApiResponse response ;
 		try {
-			List<StockInfo> stockInfo = stockService.storeStocks(stock);
-			response = createResponse("Successfully added stocks", Optional.of(stockInfo));
-			return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+			String userName = validateTokenAndGetUserName(request);
+			if(userName != null && stockList != null && !stockList.isEmpty()) {
+				
+				// Create stock info object from stockinfo wrapper
+				List<StockInfo> stockInfoLst = stockList.stream()
+						.map(item -> new StockInfo(0, item.getSymbol(), item.getAvgStockPrice(), item.getStockCount(), userName, true))
+						.collect(Collectors.toList());
+				
+				List<StockInfo> stockInfoOutput = stockService.storeStocks(stockInfoLst);
+				response = createResponse("Successfully added stocks", Optional.of(stockInfoOutput));
+				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+				
+			}else {
+				throw new Exception("Stock List is empty or Token might have been expired.");
+			}
+
 		}catch(Exception e) {
 			log.error("Exception occurred when storing stock info", e);
-			response = createResponse(e.getMessage(), Optional.of(stock));
+			response = createResponse(e.getMessage(), Optional.of(stockList));
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	@GetMapping("/{symbol}")
+	public ComputeStockMetrics getStockDetails(@PathVariable("symbol") String symbol) throws IOException {
+	   StockWrapper stock =  computeStockMetricsService.getStockPrice(symbol);
+	   ComputeStockMetrics stockInfo = new ComputeStockMetrics();
+	   stockInfo.setSymbol(stock.getStock()!=null?stock.getStock().getSymbol():"Symbol Not available.");
+	   stockInfo.setCurrentPrice(stock.getPrice().floatValue());
+	   stockInfo.setCompanyName(stock.getStock()!=null?stock.getStock().getName():"Name Not available.");
+	   stockInfo.setLastAccessed(stock.getStock()!=null?stock.getLastAccess():LocalDateTime.now());
+	   return stockInfo;
+	}
+	
+   @GetMapping("/stock-info")
+   public ResponseEntity<?> getComputedStockDetails(HttpServletRequest request) {
+	   
+		String userName = validateTokenAndGetUserName(request);
+		ComputedStockOuputWrapper output = new ComputedStockOuputWrapper();
+		if(userName != null) {
+			output =  computeStockMetricsService.getInvsetedStockInfo(userName);
+		}
+	   
+	   //passing the list to get the list of info
+	   return new ResponseEntity<>(output,HttpStatus.OK);
+   }
 
 	
 	/**
@@ -196,19 +273,59 @@ public class StockAPIController {
 		response.setStatus(status);
 		if(!information.isEmpty()) {
 			Object info = information.get();
-			List<StockInfo> stockInfo = new ArrayList<>();
+			List<StockInfoWrapper> stockInfoWrapperLst = new ArrayList<>();
 			if ( info instanceof StockInfo) {
+				StockInfo tmpStock = (StockInfo)info;
+				//Create StockInfoWrapper object
+				StockInfoWrapper stockInfoWrapper = StockInfoWrapper.builder()
+																	.symbol(tmpStock.getSymbol())
+																	.avgStockPrice(tmpStock.getAvgStockPrice())
+																	.stockCount(tmpStock.getStockCount())
+																	.build();
 				
-				stockInfo.add((StockInfo)info);
+				stockInfoWrapperLst.add(stockInfoWrapper);
 				//response.setStockInfo((List<StockInfo>)info);
 			}
 			if(info instanceof java.util.List) {
-				stockInfo = (List<StockInfo>)info;
+				List<StockInfo> stockList = (List<StockInfo>)info;
+				stockInfoWrapperLst = stockList.stream()
+						.map(item -> new StockInfoWrapper(item.getSymbol(), item.getAvgStockPrice(), item.getStockCount()))
+						.collect(Collectors.toList());
 			}
-			response.setStockInfo(stockInfo);
+			response.setStockInfo(stockInfoWrapperLst);
 		}
 		return response;
 	}
 
+	protected String validateTokenAndGetUserName(HttpServletRequest request) {
+		
+		final String authorizationHeader = request.getHeader("Authorization");
+		String jwtToken = null;
+		String tokenUserName = null;
+		boolean isValidToken = false;
+		boolean issueInAccess = false;
+		if( authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+			jwtToken = authorizationHeader.substring(7);
+			tokenUserName = jwtService.extractUserName(jwtToken);
+			if(tokenUserName != null && jwtToken != null) {
+				UserDetails userDetails = userDetailsService.loadUserByUsername(tokenUserName);
+				isValidToken = jwtService.validateToken(jwtToken,userDetails);
+				//if the username is not present in database and didn't match the jwt token - report issue
+				if(userDetails == null || !userDetails.getUsername().equals(tokenUserName)) {
+					issueInAccess = true;
+				}
+			}else {
+				issueInAccess = true;
+			}
+		}else {
+			issueInAccess = true;
+		}
+		
+		if(!issueInAccess && isValidToken) {
+			return tokenUserName;
+		}else {
+			return null;
+		}
+	}
 }
 

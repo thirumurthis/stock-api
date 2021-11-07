@@ -19,7 +19,7 @@ public class TestStockApiController {
 	public void TestApiResponse() {
 		//StockAPIController stockApi = mock(StockAPIController.class);
 		StockAPIController stockApi = new StockAPIController();
-		StockInfo stock = new StockInfo(1,"MFST",10.0f,10,1,true);
+		StockInfo stock = new StockInfo(1,"MFST",10.0f,10,"1",true);
 		Optional<?> info = Optional.of(stock);
 		
 		//to invoke a private method
@@ -30,7 +30,7 @@ public class TestStockApiController {
 		Assert.isTrue("Success".equals(output.getStatus()),"Success returned");
 		Assert.isTrue(output.getStockInfo().size()==1,"List didn't match");
 		List<StockInfo> stockTestList = new ArrayList<>();
-		StockInfo stock2 = new StockInfo(2,"AMZN",10.0f,10,1,true);
+		StockInfo stock2 = new StockInfo(2,"AMZN",10.0f,10,"1",true);
 		stockTestList.add(stock);
 		stockTestList.add(stock2);
 		

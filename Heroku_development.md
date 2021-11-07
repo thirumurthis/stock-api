@@ -59,5 +59,5 @@ $ heroku auth:token
   ```
   
   - If the maven build command reports issue during `git push heroku main`, comment java version in the pom.xml
-   
+  - In order to expose the port, in application.properties use `server.port=${PORT:8080}` configuration
    

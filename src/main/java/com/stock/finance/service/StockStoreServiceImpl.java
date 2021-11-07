@@ -18,8 +18,8 @@ public class StockStoreServiceImpl implements StockStoreService{
 	StockStoreRepository stockStoreRepository;
 	
 	@Override
-	public List<StockInfo> getStocksDetail() throws Exception{
-		return stockStoreRepository.findAll();
+	public List<StockInfo> getStocksDetail(String userName) throws Exception{
+		return stockStoreRepository.findByUserName(userName);
 	}
 
 	@Override

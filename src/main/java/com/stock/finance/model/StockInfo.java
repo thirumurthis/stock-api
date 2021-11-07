@@ -41,8 +41,8 @@ public class StockInfo {
 	private float avgStockPrice;
 	@Column(name="stock_count",nullable = false)
 	private float stockCount;
-	@Column(name="user_id",nullable = false)
-	private int userId;
+	@Column(name="user_name",nullable = false)
+	private String userName;
 	// active flag with default, when deleting issue a soft delete 
 	// for forcible delete of row handle in controller
 	@Column(name="active",nullable = false, columnDefinition = "boolean default true")

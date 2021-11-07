@@ -13,11 +13,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.finance.model.api.SimpleStatusResponse;
 import com.stock.finance.service.JWTManagerService;
 import com.stock.finance.user.service.UserAccountService;
 
+@RestController
 @RequestMapping("/admin")
 public class AdminViewController {
 
@@ -30,7 +32,7 @@ public class AdminViewController {
 	@Autowired 
 	JWTManagerService jwtService;
 	
-	@GetMapping("/get-user-info/{username}")
+	@GetMapping("/user/{username}")
 	public ResponseEntity<SimpleStatusResponse> getUserInfo(@PathVariable("username")String userName,HttpServletRequest request){
 
 		final String authorizationHeader = request.getHeader("Authorization");
@@ -44,6 +46,9 @@ public class AdminViewController {
 			if(tokenUserName != null && jwtToken != null) {
 				UserDetails userDetails = userDetailsService.loadUserByUsername(tokenUserName);
 				isValidToken = jwtService.validateToken(jwtToken,userDetails);
+				if(userDetails== null || !userDetails.getUsername().equals(tokenUserName)) {
+					issueInAccess = true;
+				}
 			}
 		}else {
 			issueInAccess = true;

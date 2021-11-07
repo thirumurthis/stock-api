@@ -63,7 +63,7 @@ public class TestStockAPIRestController {
 		
 		//Using Builder pattern approach
 		//StockInfo stock = StockInfo.builder().symbol("INTC").active(true).stockCount(10).avgStockPrice(100.00f).userId(1).build();
-		StockInfo stock = new StockInfo(100,"INTC",10.0f,100.0f,1,true);
+		StockInfo stock = new StockInfo(100,"INTC",10.0f,100.0f,"1",true);
 		MockHttpServletRequestBuilder request = post("/stock/v1/add")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)

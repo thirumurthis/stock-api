@@ -1,5 +1,7 @@
 package com.stock.finance.model;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,10 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	
 	//custom JPA method based query to fetch data based on symbol
 	StockInfo findBySymbol(String stock_symbol);
+	
+	//find list of stock based on the user id
+	//@Query(value = "select * from STOCK_STORE where user_id = :user_id")
+	List<StockInfo> findByUserName(String userName);
 	
 	//update query to modify records
 	// @Modifying annoation needs to be provided when we update/delete records in DB

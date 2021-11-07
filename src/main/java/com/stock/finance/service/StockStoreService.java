@@ -6,7 +6,7 @@ import com.stock.finance.model.StockInfo;
 
 public interface StockStoreService {
 
-	List<StockInfo> getStocksDetail() throws Exception;
+	List<StockInfo> getStocksDetail(String userName) throws Exception;
 	StockInfo storeStockInfo(StockInfo stockInfo) throws Exception;
 	List<StockInfo> storeStocks(List<StockInfo> stocks ) throws Exception;
 	StockInfo getStockInfo(String symbol) throws Exception;
