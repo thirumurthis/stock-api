@@ -43,7 +43,7 @@ public class StockAppAuthenticationController {
 	@Autowired
 	private UserAccountService userService;
 	
-	@PostMapping("/authenticate")
+	@PostMapping("/token")
 	public ResponseEntity<?> generateAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception{
 
 	 try{
@@ -72,11 +72,11 @@ public class StockAppAuthenticationController {
 			user.setPassword(userInfo.getPassword());
 			user.setActive(true);
 			//only for debugging purpose
-			if("thiru123".equalsIgnoreCase(user.getUserName())) {
-				user.setRoles("ROLE_ADMIN");
-			}else {
+			//if("thiru123".equalsIgnoreCase(user.getUserName())) {
+			//	user.setRoles("ROLE_ADMIN");
+			//}else {
 				user.setRoles("ROLE_USER");
-			}
+			//}
        		String storedUserName = userService.saveUser(user);
        		log.info("Singup endpoint invoked with user info "+user.getUserName());
        		return new ResponseEntity<>(new SimpleStatusResponse("Welcome "+ storedUserName +" !!!, Successfully singed up!!"),HttpStatus.OK); 

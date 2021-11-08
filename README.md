@@ -21,7 +21,7 @@ Stock api to monitor the financial profit loss
  
 ## output 
 {
-    "statusMessage": "Welcome thiru123 !!!, Successfully singed up!!"
+    "statusMessage": "Welcome username !!!, Successfully singed up!!"
 }
 ```
 
@@ -30,7 +30,7 @@ Stock api to monitor the financial profit loss
 
 ```
 ## POST 
-/stock-app/authenticate
+/stock-app/token
 
 ## include the username and password in the body
  {
@@ -56,7 +56,7 @@ Authorization : Bearer yyyyy.xxxx.zzzzz
 
 ## Input json mapper
 {
-    "symbol": "GAIN1",
+    "symbol": "GAIN",
     "avgStockPrice": 10.5,
     "stockCount": 10
 }
@@ -66,12 +66,9 @@ Authorization : Bearer yyyyy.xxxx.zzzzz
     "status": "Successfully added stock",
     "stockInfo": [
         {
-            "id": 2,
             "symbol": "GAIN1",
             "avgStockPrice": 10.5,
-            "stockCount": 10,
-            "userId": 1,
-            "active": true
+            "stockCount": 10.0
         }
     ]
 }
@@ -89,40 +86,69 @@ Content-Type : "application/json"
 ## input json 
 
 [{
-    "id": 3,
-    "symbol": "GAIN5",
-    "average_price": 10.5,
-    "stock_count": 10,
-    "user_id": 1
-},
-{
-    "id": 4,
-    "symbol": "AMZN",
-    "average_price": 10.5,
-    "stock_count": 10,
-    "user_id": 1
+		"symbol": "MSFT",
+		"stockCount": "10.0",
+		"avgStockPrice": "200.50"
+	},
+	{
+		"symbol": "INTC",
+		"stockCount": "5.0",
+		"avgStockPrice": "50.00"
 }]
 
 ## output
 {
     "status": "Successfully added stocks",
+    "stockInfo": [{
+		"symbol": "MSFT",
+		"stockCount": "10.0",
+		"avgStockPrice": "200.50"
+	 },
+	 {
+		"symbol": "INTC",
+		"stockCount": "5.0",
+		"avgStockPrice": "50.00"
+     }]
+}
+```
+- Stored Stock info can be used to compute the metrics like Profit/Loss against symbol stored in DB
+
+```
+## POST Endpoint with header Authorization token
+/stock/v1/stock-info
+```
+ 
+ - Below is the sample output rendered
+ 
+```json
+{
     "stockInfo": [
         {
-            "id": 1,
-            "symbol": "GAIN5",
-            "avgStockPrice": 0,
-            "stockCount": 0,
-            "userId": 0,
-            "active": true
+            "symbol": "MSFT",
+            "currentPrice": 336.06,
+            "companyName": "Microsoft Corporation",
+            "lastAccessed": "2021-11-07T17:38:31.7269808",
+            "currentInvestedAmount": 111.1111,
+            "actualInvestedAmount": 222.2222,
+            "difference": 111.1111,
+            "profitOrLoss": "** Profit **"
         },
         {
-            "id": 2,
-            "symbol": "AMZN",
-            "avgStockPrice": 0,
-            "stockCount": 0,
-            "userId": 0,
-            "active": true
+            "symbol": "INTC",
+            "currentPrice": 50.92,
+            "companyName": "Intel Corporation",
+            "lastAccessed": "2021-11-07T17:38:31.8349824",
+            "currentInvestedAmount": 111.111,
+            "actualInvestedAmount": 222.2222,
+            "difference": -11.1111,
+            "profitOrLoss": "** Loss **"
         }
-    ]
+    ],
+    "investedAmount": 1000.500,
+    "currentMarketTotalAmount": 5000.000,
+    "difference": 4000.500,
+    "profitLossStatus": "**PROFIT**",
+    "lastAccessed": "2021-11-07T17:38:31.8589826",
+    "simpleStatus": "Successfully computed."
 }
 ```

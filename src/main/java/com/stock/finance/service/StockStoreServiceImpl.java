@@ -34,9 +34,9 @@ public class StockStoreServiceImpl implements StockStoreService{
 	}
 
 	@Override
-	public void softDeleteStockInfo(String symbol,boolean softDelete) throws Exception {
+	public void softDeleteStockInfo(String symbol,String userName, boolean softDelete) throws Exception {
 		if(null != symbol && !symbol.equals("")) {
-  		   stockStoreRepository.softDeleteStockInfo(symbol,softDelete);
+  		   stockStoreRepository.softDeleteStockInfo(symbol,userName,softDelete);
 		}else {
 			log.error("[StockStoreServiceImpl:deleteStockInfo] stock symbol is null");
 			throw new Exception("[StockStoreServiceImpl:deleteStockInfo] stock symbol is null");
@@ -44,9 +44,9 @@ public class StockStoreServiceImpl implements StockStoreService{
 	}
 	
 	@Override
-	public void deleteStockInfo(String symbol) throws Exception {
+	public void deleteStockInfo(String symbol, String userName) throws Exception {
 		if(null != symbol && !symbol.equals("")) {
-  		   stockStoreRepository.deleteStockInfo(symbol);
+  		   stockStoreRepository.deleteStockInfo(symbol,userName);
 		}else {
 			log.error("[StockStoreServiceImpl:deleteStockInfo] stock symbol is null");
 			throw new Exception("[StockStoreServiceImpl:deleteStockInfo] stock symbol is null");
@@ -66,8 +66,9 @@ public class StockStoreServiceImpl implements StockStoreService{
 	}
 
 	@Override
-	public StockInfo getStockInfo(String symbol) throws Exception {
-		return stockStoreRepository.findBySymbol(symbol);
+	public StockInfo getStockInfoBySymbolAndUser(String symbol, String userName) throws Exception {
+		
+		return stockStoreRepository.findBySymbolAndUserName(symbol, userName);
 	}
 
 }
