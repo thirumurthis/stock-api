@@ -1,13 +1,15 @@
+/*For now the database script is not used */
+/*
 CREATE TABLE IF NOT EXISTS stock_store (
   id INT AUTO_INCREMENT  PRIMARY KEY,
-  symbol VARCHAR(250) NOT NULL,
+  symbol VARCHAR(50) NOT NULL,
   average_price DECIMAL(20,10) NOT NULL,
   stock_count INT NOT NULL,
-  user_id INT NOT NULL,
+  user_name varchar(255) NOT NULL,
   active TINYINT NOT NULL
 );
 
-/*
+
 create table if not exists users(
 	username varchar_ignorecase(50) not null primary key,
 	password varchar_ignorecase(50) not null,
