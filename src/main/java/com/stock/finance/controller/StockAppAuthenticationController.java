@@ -3,6 +3,7 @@ package com.stock.finance.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,7 +11,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +64,10 @@ public class StockAppAuthenticationController {
 		return ResponseEntity.ok(new AuthenticationResponse(jwt));
 	}
 	
+	@Value("${admin.user.info:secretadmin}")
+	private String adminUserInfo;
+	
+	
 	@PostMapping("/signup")
 	public ResponseEntity<?> signUpUser(@RequestBody AuthenticationRequest userInfo) {
 		if(userInfo != null) {
@@ -72,11 +76,11 @@ public class StockAppAuthenticationController {
 			user.setPassword(userInfo.getPassword());
 			user.setActive(true);
 			//only for debugging purpose
-			//if("thiru123".equalsIgnoreCase(user.getUserName())) {
-			//	user.setRoles("ROLE_ADMIN");
-			//}else {
+			if(adminUserInfo.equalsIgnoreCase(user.getUserName())) {
+				user.setRoles("ROLE_ADMIN");
+			}else {
 				user.setRoles("ROLE_USER");
-			//}
+			}
        		String storedUserName = userService.saveUser(user);
        		log.info("Singup endpoint invoked with user info "+user.getUserName());
        		return new ResponseEntity<>(new SimpleStatusResponse("Welcome "+ storedUserName +" !!!, Successfully singed up!!"),HttpStatus.OK); 
