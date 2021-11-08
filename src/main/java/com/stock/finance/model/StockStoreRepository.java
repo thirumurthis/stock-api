@@ -20,6 +20,7 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	//@Query(value = "select * from STOCK_STORE where user_id = :user_id")
 	List<StockInfo> findByUserName(String userName);
 	
+	StockInfo findBySymbolAndUserName(String symbol,String userName);
 	//update query to modify records
 	// @Modifying annoation needs to be provided when we update/delete records in DB
 	@Modifying
@@ -34,13 +35,13 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	@Modifying
 	@Transactional
 	// using positional parameter for mapping the value
-	@Query(value="delete from STOCK_STORE where stock_symbol = ?1 ",nativeQuery = true)
-	void deleteStockInfo(String stockSymbol);
+	@Query(value="delete from STOCK_STORE where stock_symbol = ?1 and user_name =?2 ",nativeQuery = true)
+	void deleteStockInfo(String stockSymbol,String userName);
 	
 	@Modifying
 	@Transactional
 	// using positional parameter for mapping the value
-	@Query(value="update STOCK_STORE set active = ?2 where stock_symbol = ?1 ",nativeQuery = true)
-	void softDeleteStockInfo(String stockSymbol,boolean isActive);
+	@Query(value="update STOCK_STORE set active = ?3 where stock_symbol = ?1 and user_name = ?2 ",nativeQuery = true)
+	void softDeleteStockInfo(String stockSymbol,String userName, boolean isActive);
 
 }

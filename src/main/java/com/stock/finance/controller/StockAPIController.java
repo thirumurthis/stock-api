@@ -164,21 +164,31 @@ public class StockAPIController {
 	}
 
 	@GetMapping("/{symbol}")
-	public ComputeStockMetrics getStockDetails(@PathVariable("symbol") String symbol) throws IOException {
+	public ResponseEntity<?> getStockDetails(@PathVariable("symbol") String symbol, HttpServletRequest request) throws IOException {
+		
+	   String userName = validateTokenAndGetUserName(request);
+	   if(userName == null) {
+		   return new ResponseEntity<>("User name doesn't exists or Token Expired",HttpStatus.INTERNAL_SERVER_ERROR);   
+	   }
 	   StockWrapper stock =  computeStockMetricsService.getStockPrice(symbol);
 	   ComputeStockMetrics stockInfo = new ComputeStockMetrics();
 	   stockInfo.setSymbol(stock.getStock()!=null?stock.getStock().getSymbol():"Symbol Not available.");
 	   stockInfo.setCurrentPrice(stock.getPrice().floatValue());
 	   stockInfo.setCompanyName(stock.getStock()!=null?stock.getStock().getName():"Name Not available.");
 	   stockInfo.setLastAccessed(stock.getStock()!=null?stock.getLastAccess():LocalDateTime.now());
-	   return stockInfo;
+	   return new ResponseEntity<>(stockInfo,HttpStatus.OK);
 	}
 	
-   @GetMapping("/stock-info")
+   @PostMapping("/stock-info")
    public ResponseEntity<?> getComputedStockDetails(HttpServletRequest request) {
 	   
 		String userName = validateTokenAndGetUserName(request);
 		ComputedStockOuputWrapper output = new ComputedStockOuputWrapper();
+		if(userName == null) {
+			output.setSimpleStatus("Exception occured computing or Token expired");
+			return new ResponseEntity<>(output,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 		if(userName != null) {
 			output =  computeStockMetricsService.getInvsetedStockInfo(userName);
 		}
@@ -188,39 +198,6 @@ public class StockAPIController {
    }
 
 	
-	/**
-	 * Function to delete the stock by tagging a active flag to false - deactivate for user
-	 * @param symbol
-	 * @return
-	 */
-	@DeleteMapping("/delete/{symbol}")
-	public ResponseEntity<ApiResponse> deleteStockInfo(@PathVariable("symbol") String symbol){
-		ApiResponse response;
-		StockInfo stock = null;
-		try {
-			if(symbol != null) {
-				stock = stockService.getStockInfo(symbol);
-				//perform soft delete
-				if(stock != null && stock.isActive()) {
-					stockService.softDeleteStockInfo(symbol,false);
-					stock = stockService.getStockInfo(symbol);
-					response = createResponse("Successfully deactivated stock", Optional.of(stock));
-					return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
-				}
-				if( stock != null && !stock.isActive()) {
-					response = createResponse("Symbol "+symbol+" already deactivated.",Optional.of(stock));
-					return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
-				}
-			}
-			response = createResponse("Symbol "+symbol+" NOT Exits.",Optional.of(new ArrayList<StockInfo>()));
-			return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
-		}catch(Exception e) {
-			log.error("Exception occurred when deleting stock info using symbol", e);
-			response = createResponse("Exception occured deactivating "+symbol+" "+e.getMessage(),Optional.of(new ArrayList<StockInfo>()));
-			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
 	private final static String FORCE_DELETE = "force";
 	
 	/**
@@ -230,13 +207,17 @@ public class StockAPIController {
 	 * @return
 	 */
 	@DeleteMapping("/delete/{symbol}/{force}")
-	public ResponseEntity<ApiResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force){
+	public ResponseEntity<ApiResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force, HttpServletRequest request){
 		ApiResponse response;
 		StockInfo stock = null;
 		try {
 			boolean forceDelete= false;
-			if(symbol != null && force !=null) {
-				stock = stockService.getStockInfo(symbol);
+			String userName = validateTokenAndGetUserName(request);
+			if(userName == null) {
+				throw new Exception("User name not exits or Token Expired.");
+			}
+			if(userName != null && symbol != null && force !=null) {
+				stock = stockService.getStockInfoBySymbolAndUser(symbol,userName);
 				if(stock != null) {
 					//perform soft delete
 					if(force != null && FORCE_DELETE.equals(force.trim())) {
@@ -244,10 +225,10 @@ public class StockAPIController {
 					}
 					if(forceDelete) {
 						//completed remove the symbol from database
-						stockService.deleteStockInfo(symbol);	
+						stockService.deleteStockInfo(symbol,userName);	
 					}else {
 						// deactivate the symbol in database
-						stockService.softDeleteStockInfo(symbol,true);
+						stockService.softDeleteStockInfo(symbol,userName,true);
 					}
 				}
 			}else {
@@ -257,7 +238,7 @@ public class StockAPIController {
 			if(stock!=null) {
 				   response = createResponse("Successfully deleted",Optional.of(stock));
 			}else { 
-			   response = createResponse("Successfully deleted",Optional.of(new ArrayList<StockInfo>()));
+			   response = createResponse("Stock Symbol not exits in datasource.",Optional.of(new ArrayList<StockInfo>()));
 			}
 			return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
 		}catch(Exception e) {

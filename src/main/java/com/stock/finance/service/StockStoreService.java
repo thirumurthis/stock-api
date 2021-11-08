@@ -9,7 +9,7 @@ public interface StockStoreService {
 	List<StockInfo> getStocksDetail(String userName) throws Exception;
 	StockInfo storeStockInfo(StockInfo stockInfo) throws Exception;
 	List<StockInfo> storeStocks(List<StockInfo> stocks ) throws Exception;
-	StockInfo getStockInfo(String symbol) throws Exception;
-	void softDeleteStockInfo(String symbol,boolean softdelete) throws Exception;
-	void deleteStockInfo(String symbol) throws Exception;
+	StockInfo getStockInfoBySymbolAndUser(String symbol,String userName) throws Exception;
+	void softDeleteStockInfo(String symbol,String userName, boolean softdelete) throws Exception;
+	void deleteStockInfo(String symbol,String userName) throws Exception;
 }
