@@ -71,6 +71,9 @@ public class AdminViewController {
 
 			if(!issueInAccess && isValidToken && userName != null || !"".equals(userName) && userName.equals(tokenUserName)) {
 				String userDetailInfo = userService.getUserNameInfo(userName);
+				if(userDetailInfo == null) {
+					return new ResponseEntity<>(new SimpleStatusResponse("User Not exists in the database."),HttpStatus.OK);
+				}
 				return new ResponseEntity<>(new SimpleStatusResponse(userDetailInfo),HttpStatus.OK);
 			}else {
 				return new ResponseEntity<>(new SimpleStatusResponse("You don't have access to this end-point"),HttpStatus.OK);					
