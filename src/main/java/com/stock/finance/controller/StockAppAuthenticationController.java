@@ -78,12 +78,13 @@ public class StockAppAuthenticationController {
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= String.class)))})
 	@PostMapping("/signup")
 	public ResponseEntity<?> signUpUser(@RequestBody AuthenticationRequest userInfo) {
+		try {
 		if(userInfo != null) {
 			//check if the username is already registered
 			if(userInfo.getUserName()!=null) {
 			 String userFromDB =userService.getUserNameInfo(userInfo.getUserName());
 			 if(userFromDB!=null && userFromDB.contains(userInfo.getUserName())) {
-				 new ResponseEntity<>(new SimpleStatusResponse("User Name : "+ userInfo.getUserName() +" already exists in database!!"),HttpStatus.OK);
+				 return new ResponseEntity<>(new SimpleStatusResponse("User Name : "+ userInfo.getUserName() +" already exists in database!!"),HttpStatus.OK);
 			 }
 			}
 			Users user = new Users();
@@ -100,8 +101,12 @@ public class StockAppAuthenticationController {
        		log.info("Singup endpoint invoked with user info "+user.getUserName());
        		return new ResponseEntity<>(new SimpleStatusResponse("Welcome "+ storedUserName +" !!!, Successfully singed up!!"),HttpStatus.OK); 
 		}else {
-       		log.info("/singup endpoint invoked, the user info object is null");
+       		log.warn("/singup endpoint invoked, the user info object is null");
 			return new ResponseEntity<>(new SimpleStatusResponse("Signup form didn't successfully store user info."),HttpStatus.OK);	
+		}
+		}catch(Exception e) {
+			log.error("/singup endpoint invoked, exception occured ",e);
+			return new ResponseEntity<>(new SimpleStatusResponse("Signup form didn't successfully store user info."),HttpStatus.INTERNAL_SERVER_ERROR);	
 		}
 	}	
 }
