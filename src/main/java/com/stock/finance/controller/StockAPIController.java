@@ -201,7 +201,7 @@ public class StockAPIController {
 	
 	@Operation(description="This end-point will return the stock information computed for the invested amount and returns details as response."
 			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
-			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ComputeStockMetrics.class)))})
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ComputedStockOuputWrapper.class)))})
    @PostMapping("/stock-info")
    public ResponseEntity<?> getComputedStockDetails(HttpServletRequest request) {
 	   
