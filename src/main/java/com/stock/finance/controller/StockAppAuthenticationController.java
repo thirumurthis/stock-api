@@ -58,7 +58,7 @@ public class StockAppAuthenticationController {
 			authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(authenticationRequest.getUserName(),authenticationRequest.getPassword()));
 		} catch (BadCredentialsException e){
-			return new ResponseEntity<>(new SimpleStatusResponse("Invalid username or password"),HttpStatus.OK);
+			return new ResponseEntity<>(new AuthenticationResponse("Invalid username or password"),HttpStatus.OK);
 			//throw new Exception ("Invalid username and password");
 		}
 		// since now validated we need to get the username and generate JWT
@@ -66,7 +66,7 @@ public class StockAppAuthenticationController {
 		final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUserName());
 		final String jwt = jwtManagerService.generateToken(userDetails);
 		if(jwt == null || userDetails == null) {
-			return new ResponseEntity<>(new SimpleStatusResponse("Username or password doesn't exists."),HttpStatus.OK);
+			return new ResponseEntity<>(new AuthenticationResponse("Username or password doesn't exists."),HttpStatus.OK);
 		}
 		return ResponseEntity.ok(new AuthenticationResponse(jwt));
 	}
@@ -75,7 +75,7 @@ public class StockAppAuthenticationController {
 	private String adminUserInfo;
 	
 	@Operation(description="This end-point is used to register or sign-up the user to access the API.",
-			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= String.class)))})
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= SimpleStatusResponse.class)))})
 	@PostMapping("/signup")
 	public ResponseEntity<?> signUpUser(@RequestBody AuthenticationRequest userInfo) {
 		try {
