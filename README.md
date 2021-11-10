@@ -152,3 +152,10 @@ Content-Type : "application/json"
     "simpleStatus": "Successfully computed."
 }
 ```
+
+### Swagger open api v3 - access
+ - Once the user has signed up with the username and password.
+ - when accessing URL end-point `http://<domain>:8080/swagger-ui/index.html`
+ - once Swagger UI is display, input `/stockapp-openapi`
+ - when prompt for username & password, enter the value used to sign up.
+ 

@@ -29,12 +29,18 @@ import com.stock.finance.model.ComputedStockOuputWrapper;
 import com.stock.finance.model.StockInfo;
 import com.stock.finance.model.StockInfoWrapper;
 import com.stock.finance.model.StockWrapper;
-import com.stock.finance.model.api.ApiResponse;
+import com.stock.finance.model.api.ApiAppResponse;
 import com.stock.finance.service.ComputeStockMetricsService;
 import com.stock.finance.service.JWTManagerService;
 import com.stock.finance.service.StockStoreService;
-import com.stock.finance.user.service.UserAccountService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
 
@@ -67,6 +73,9 @@ public class StockAPIController {
 	 * Prints the list of stocks available in database
 	 * @return
 	 */
+	@Operation(description="This end-point will return the list of Stocks from the database for that user, "
+			+ "token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			responses = { @ApiResponse(content = @Content(array=@ArraySchema(schema=@Schema(implementation= StockInfoWrapper.class))))})
 	@GetMapping("/get")
 	public ResponseEntity<List<StockInfoWrapper>> getStockInfoFromDataStore(HttpServletRequest request) {
 		try {
@@ -102,9 +111,12 @@ public class StockAPIController {
 	 * @param stock
 	 * @return
 	 */
+	@Operation(description="This end-point will add specfic stock passed in the POST body, only inserts if valid token is used and returns status response."
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@PostMapping("/add")
-	public ResponseEntity<ApiResponse> addStock(@RequestBody StockInfoWrapper stock,HttpServletRequest request){
-		ApiResponse response;
+	public ResponseEntity<ApiAppResponse> addStock(@RequestBody StockInfoWrapper stock,HttpServletRequest request){
+		ApiAppResponse response;
 		try {
 			String userName = validateTokenAndGetUserName(request);
 			if(stock != null && stock.getSymbol() != null) {
@@ -118,10 +130,10 @@ public class StockAPIController {
 				
 				StockInfo stockInfo = stockService.storeStockInfo(inputStockInfo);
 				response = createResponse("Successfully added stock", Optional.of(stockInfo)); 
-				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 			}else {
 				response = createResponse("Stock object is Empty. Cannot add stock.", Optional.of(new ArrayList<StockInfo>())); 
-				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 			}
 		}catch(Exception e) {
 			log.error("Exception occurred when storing stock info", e);
@@ -136,9 +148,12 @@ public class StockAPIController {
 	 * @param stock
 	 * @return
 	 */
+	@Operation(description="This end-point will add list stock passed in the POST body, only inserts if valid token is used and returns the status. "
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@PostMapping("/add/stocks")
-	public ResponseEntity<ApiResponse> addStocks(@RequestBody List<StockInfoWrapper> stockList, HttpServletRequest request){
-		ApiResponse response ;
+	public ResponseEntity<ApiAppResponse> addStocks(@RequestBody List<StockInfoWrapper> stockList, HttpServletRequest request){
+		ApiAppResponse response ;
 		try {
 			String userName = validateTokenAndGetUserName(request);
 			if(userName != null && stockList != null && !stockList.isEmpty()) {
@@ -150,7 +165,7 @@ public class StockAPIController {
 				
 				List<StockInfo> stockInfoOutput = stockService.storeStocks(stockInfoLst);
 				response = createResponse("Successfully added stocks", Optional.of(stockInfoOutput));
-				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				
 			}else {
 				throw new Exception("Stock List is empty or Token might have been expired.");
@@ -163,15 +178,20 @@ public class StockAPIController {
 		}
 	}
 
+	@Operation(description="This end-point will return the specific stock current price and other info."
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			parameters = {@Parameter(in= ParameterIn.PATH, name = "symbol", description = "The stock symbol per the standard")},
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ComputeStockMetrics.class)))})
 	@GetMapping("/{symbol}")
 	public ResponseEntity<?> getStockDetails(@PathVariable("symbol") String symbol, HttpServletRequest request) throws IOException {
-		
+
+	   ComputeStockMetrics stockInfo = new ComputeStockMetrics();
 	   String userName = validateTokenAndGetUserName(request);
 	   if(userName == null) {
 		   return new ResponseEntity<>("User name doesn't exists or Token Expired",HttpStatus.INTERNAL_SERVER_ERROR);   
 	   }
 	   StockWrapper stock =  computeStockMetricsService.getStockPrice(symbol);
-	   ComputeStockMetrics stockInfo = new ComputeStockMetrics();
+
 	   stockInfo.setSymbol(stock.getStock()!=null?stock.getStock().getSymbol():"Symbol Not available.");
 	   stockInfo.setCurrentPrice(stock.getPrice().floatValue());
 	   stockInfo.setCompanyName(stock.getStock()!=null?stock.getStock().getName():"Name Not available.");
@@ -179,6 +199,9 @@ public class StockAPIController {
 	   return new ResponseEntity<>(stockInfo,HttpStatus.OK);
 	}
 	
+	@Operation(description="This end-point will return the stock information computed for the invested amount and returns details as response."
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ComputeStockMetrics.class)))})
    @PostMapping("/stock-info")
    public ResponseEntity<?> getComputedStockDetails(HttpServletRequest request) {
 	   
@@ -206,9 +229,14 @@ public class StockAPIController {
 	 * @param force
 	 * @return
 	 */
+	@Operation(description="This end-point will delete specific stock when valid symbol is passed as parameter, with /force parameter the stock will be deleted from database."
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			parameters = {@Parameter(in= ParameterIn.PATH, name = "symbol", required = true, description = "The stock symbol per the standard. Eg: MSFT for Microsoft"),
+					      @Parameter(in= ParameterIn.PATH, name = "force",required = false, description = "Optional value, when provided deletes the stock symbol completely from database.")},
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@DeleteMapping("/delete/{symbol}/{force}")
-	public ResponseEntity<ApiResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force, HttpServletRequest request){
-		ApiResponse response;
+	public ResponseEntity<ApiAppResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force, HttpServletRequest request){
+		ApiAppResponse response;
 		StockInfo stock = null;
 		try {
 			boolean forceDelete= false;
@@ -233,14 +261,14 @@ public class StockAPIController {
 				}
 			}else {
 				response = createResponse("Symbol "+symbol+" NOT Exits.",Optional.of(new ArrayList<StockInfo>()));
-				return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 			}
 			if(stock!=null) {
 				   response = createResponse("Successfully deleted",Optional.of(stock));
 			}else { 
 			   response = createResponse("Stock Symbol not exits in datasource.",Optional.of(new ArrayList<StockInfo>()));
 			}
-			return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);
+			return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 		}catch(Exception e) {
 			log.error("Exception occurred when deleting stock info using symbol", e);
 			response = createResponse("Exception occured deleting "+symbol+" "+e.getMessage(),Optional.of(new ArrayList<StockInfo>()));
@@ -249,8 +277,8 @@ public class StockAPIController {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private ApiResponse createResponse(String status, Optional<?> information) {
-		ApiResponse response = new ApiResponse();
+	private ApiAppResponse createResponse(String status, Optional<?> information) {
+		ApiAppResponse response = new ApiAppResponse();
 		response.setStatus(status);
 		if(!information.isEmpty()) {
 			Object info = information.get();
