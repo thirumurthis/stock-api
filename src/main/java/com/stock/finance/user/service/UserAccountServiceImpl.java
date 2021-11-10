@@ -17,14 +17,14 @@ public class UserAccountServiceImpl implements UserAccountService{
 	
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public String saveUser(Users user) {
+	public String saveUser(Users user) throws Exception{
 		user.setPassword(encoder.encode(user.getPassword()));
 		Users userInfo =  userRepo.save(user);
 		return userInfo.getUserName();
 	}
 
 	@Override
-	public String getUserNameInfo(String userName) {
+	public String getUserNameInfo(String userName) throws Exception{
 		Users user = userRepo.findByUserName(userName);
 		return user.getUserName()+" :: "+user.getRoles();
 	}
