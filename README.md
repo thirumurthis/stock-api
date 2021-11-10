@@ -3,65 +3,89 @@ Stock api to monitor the financial profit loss
 
 - Warning:
   - The database is not a persistent database (currently H2 database)
-  - 
+
 
  - In order to access this api, use below end-point to signup
    - This endpoint will store the user info in H2 DB
-   
+
+##### End-point to `singup`
 ```
 ## POST
  
 /stock-app/signup
+```
+ - INPUT: Include username and password in the request body
 
-## include the username and password in the body
+```json
  {
   "userName":"username",
   "password":"password"
  }
- 
-## output 
+``` 
+
+- OUTPUT: Response
+
+```json
 {
-    "statusMessage": "Welcome username !!!, Successfully singed up!!"
+    "statusMessage": "Welcome <<username>> !!!, Successfully singed up!!"
 }
 ```
 
-- Once `signed up` with the user name
-- Hit the below end point, to get the jwt token
+##### Create jwt token to access other end-points
+
+  - Once `signed up` with the user name
+  - Hit the below end point, to generate the jwt token
 
 ```
 ## POST 
 /stock-app/token
+```
+ - INPUT: username and password info in the body of POST request
 
-## include the username and password in the body
+```json 
  {
   "userName":"username",
   "password":"password"
  }
+```
 
-## output will be a json as below
+ - OUTPUT: jwt token in Json repsonse
+ 
+```json 
 {
   "jwtToken": "yyyyyyyy.xxxxxxxxxxxxxxxx.zzzzzzzzzz"
 }
 ```
 
+##### Adding single stock info
+
 - In order to add stocks to the database use below end-point
-  - use the generated jwt token as `Authorization : Bearer ` header
+  - use the token in the POST request HTTP header like below
+   ```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"
+   
+  ```
+    
 
 ```
 ## POST
 /stock/v1/add
+````
+ - INPUT: json input to be sent in the body of the POST request
+   - use the same structure
 
-## with below header
-Authorization : Bearer yyyyy.xxxx.zzzzz
-
-## Input json mapper
+```json
 {
     "symbol": "GAIN",
     "avgStockPrice": 10.5,
     "stockCount": 10
 }
+```
 
-## Output json mapper
+ - Output: json repsone after added the stock info to DB
+ 
+```json 
 {
     "status": "Successfully added stock",
     "stockInfo": [
@@ -73,18 +97,27 @@ Authorization : Bearer yyyyy.xxxx.zzzzz
     ]
 }
 ```
-- In order to add list of stock using list
 
+##### In order to add list of stock using json Array
+   - pass the in JWT token as a Request header as below 
+   ```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"
+   ```
+   
 ```
 ## POST request
 /stock/v1/add/stocks
+```
 
-## use headers
-Authorization : Bearer xxxxx.yyyy.zzzz
-Content-Type : "application/json"
+ - INPUT: Pass the below json structure in the body of POST Http request.
+  - Use the generated JWT token to access the end-point, like below
+   ```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"
+  ```
 
-## input json 
-
+```json
 [{
 		"symbol": "MSFT",
 		"stockCount": "10.0",
@@ -95,8 +128,11 @@ Content-Type : "application/json"
 		"stockCount": "5.0",
 		"avgStockPrice": "50.00"
 }]
+```
 
-## output
+  - OUTPUT : Response from the API
+  
+```json
 {
     "status": "Successfully added stocks",
     "stockInfo": [{
@@ -111,14 +147,21 @@ Content-Type : "application/json"
      }]
 }
 ```
-- Stored Stock info can be used to compute the metrics like Profit/Loss against symbol stored in DB
-
+##### To get the stock details with computed metrics use below end-point
+  - The list of stock info stored under the specific user will be computed and displayed in the response
+  - Pass the JWT token part of the POST request header.
+   ```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"  
+   ```
+  
+  
 ```
 ## POST Endpoint with header Authorization token
 /stock/v1/stock-info
 ```
- 
- - Below is the sample output rendered
+   
+ - OUTPUT : Below is the sample output rendered
  
 ```json
 {
@@ -153,9 +196,10 @@ Content-Type : "application/json"
 }
 ```
 
-### Swagger open api v3 - access
+#####  Swagger open api v3 - access
+
  - Once the user has signed up with the username and password.
- - when accessing URL end-point `http://<domain>:8080/swagger-ui/index.html`
- - once Swagger UI is display, input `/stockapp-openapi`
- - when prompt for username & password, enter the value used to sign up.
+ - Access end-point with URL - `http://<domain>/swagger-ui/index.html`
+ - Once Swagger UI is rendered, input `/stockapp-openapi`
+ - To explore the API end-points, use username & password used to sign-up for API to access.
  
