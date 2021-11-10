@@ -26,7 +26,11 @@ public class UserAccountServiceImpl implements UserAccountService{
 	@Override
 	public String getUserNameInfo(String userName) throws Exception{
 		Users user = userRepo.findByUserName(userName);
-		return user.getUserName()+" :: "+user.getRoles();
+		if(user != null) {
+		   return user.getUserName()+" :: "+user.getRoles();
+		}else {
+			return null;
+		}
 	}
 
 }
