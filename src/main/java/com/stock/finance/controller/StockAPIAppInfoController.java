@@ -12,6 +12,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stock.finance.model.api.About;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 @RestController
 @RequestMapping("/stock-app/")
 public class StockAPIAppInfoController {
@@ -35,6 +40,7 @@ public class StockAPIAppInfoController {
 	 * @throws JsonMappingException
 	 * @throws JsonProcessingException
 	 */
+	@Operation(description = "This end-point will display information about the application. used mostly for testing.")
 	@GetMapping("/info")
 	public ResponseEntity<JsonNode> apiInfo() throws JsonMappingException, JsonProcessingException{
 		String appInfo = "{\"info\":\"Stock API info message\"}";
@@ -47,11 +53,11 @@ public class StockAPIAppInfoController {
 	 * @return
 	 * @throws Exception
 	 */
-	@GetMapping("/about")
+	@Operation(description = "This end-point will list the details about the applicaton and version details.",
+			responses = {@ApiResponse(content = @Content(schema = @Schema(implementation = About.class)))})
+	@GetMapping(value="/about",produces="application/json")
 	public ResponseEntity<About> aboutAPI() throws Exception{
 		About about = new About(appName,version,description);
 		return ResponseEntity.ok(about);
 	}
-
-
 }

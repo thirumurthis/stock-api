@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApiResponse {
+public class ApiAppResponse {
 
 	private String status;
 	private List<StockInfoWrapper> stockInfo;

@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
 
 import com.stock.finance.controller.StockAPIController;
 import com.stock.finance.model.StockInfo;
-import com.stock.finance.model.api.ApiResponse;
+import com.stock.finance.model.api.ApiAppResponse;
 
 
 public class TestStockApiController {
@@ -23,7 +23,7 @@ public class TestStockApiController {
 		Optional<?> info = Optional.of(stock);
 		
 		//to invoke a private method
-		ApiResponse output = ReflectionTestUtils.invokeMethod(stockApi, "createResponse", "Success",info);
+		ApiAppResponse output = ReflectionTestUtils.invokeMethod(stockApi, "createResponse", "Success",info);
 		
 		//ApiResponse output = stockApi.createResponse("Success", info);
 		
@@ -36,7 +36,7 @@ public class TestStockApiController {
 		
 		//ApiResponse out = stockApi.createResponse("Success", Optional.of(stockTestList));
 		//Invoking private method
-		ApiResponse out = ReflectionTestUtils.invokeMethod(stockApi, "createResponse", "Success",Optional.of(stockTestList));
+		ApiAppResponse out = ReflectionTestUtils.invokeMethod(stockApi, "createResponse", "Success",Optional.of(stockTestList));
 		Assert.isTrue("Success".equals(out.getStatus()),"Success returned");
 		Assert.isTrue(out.getStockInfo().size()==2,"List didn't match");		
 		

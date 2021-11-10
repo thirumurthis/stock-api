@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.finance.model.AuthenticationRequest;
+import com.stock.finance.model.ComputeStockMetrics;
 import com.stock.finance.model.api.AuthenticationResponse;
 import com.stock.finance.model.api.SimpleStatusResponse;
 import com.stock.finance.service.CustomUserDetailsService;
@@ -24,6 +25,10 @@ import com.stock.finance.service.JWTManagerService;
 import com.stock.finance.user.model.Users;
 import com.stock.finance.user.service.UserAccountService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
@@ -42,7 +47,9 @@ public class StockAppAuthenticationController {
 	
 	@Autowired
 	private UserAccountService userService;
-	
+
+	@Operation(description="This end-point is used to provide the token for when user name and password passed in POST request body.",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= AuthenticationResponse.class)))})
 	@PostMapping("/token")
 	public ResponseEntity<?> generateAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception{
 
@@ -67,10 +74,18 @@ public class StockAppAuthenticationController {
 	@Value("${admin.user.info:secretadmin}")
 	private String adminUserInfo;
 	
-	
+	@Operation(description="This end-point is used to register or sign-up the user to access the API.",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= String.class)))})
 	@PostMapping("/signup")
 	public ResponseEntity<?> signUpUser(@RequestBody AuthenticationRequest userInfo) {
 		if(userInfo != null) {
+			//check if the username is already registered
+			if(userInfo.getUserName()!=null) {
+			 String userFromDB =userService.getUserNameInfo(userInfo.getUserName());
+			 if(userFromDB!=null && userFromDB.contains(userInfo.getUserName())) {
+				 new ResponseEntity<>(new SimpleStatusResponse("User Name : "+ userInfo.getUserName() +" already exists in database!!"),HttpStatus.OK);
+			 }
+			}
 			Users user = new Users();
 			user.setUserName(userInfo.getUserName());
 			user.setPassword(userInfo.getPassword());
