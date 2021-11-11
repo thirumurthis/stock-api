@@ -2,14 +2,20 @@ package com.stock.finance.controller;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -118,11 +124,22 @@ public class StockAPIController {
 	public ResponseEntity<ApiAppResponse> addStock(@RequestBody StockInfoWrapper stock,HttpServletRequest request){
 		ApiAppResponse response;
 		try {
+			// perform json schema validation first on the input
+			if (!validateInputValues.apply(stock)) {
+				response = createResponse("Input json format NOT vaild.", Optional.of(new ArrayList<StockInfo>())); 
+				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);	
+			}
 			String userName = validateTokenAndGetUserName(request);
 			if(stock != null && stock.getSymbol() != null) {
+				//if stock is already available in database don't need to add it again
+				StockInfo stockFromDB = stockService.getStockInfoBySymbolAndUser(stock.getSymbol(), userName);
+				if(stockFromDB!=null && stockFromDB.getSymbol().equals(stock.getSymbol())) {
+					response = createResponse("Stock info already exists in DB.", Optional.of(stockFromDB)); 
+					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
+				}
 				//Create stock info object from stockinfo wrapper
 				StockInfo inputStockInfo = StockInfo.builder()
-						                            .symbol(stock.getSymbol())
+						                            .symbol(stock.getSymbol().toUpperCase()) //convert the symbol to upper case
 						                            .stockCount(stock.getStockCount())
 						                            .avgStockPrice(stock.getAvgStockPrice())
 						                            .userName(userName)
@@ -138,7 +155,7 @@ public class StockAPIController {
 		}catch(Exception e) {
 			log.error("Exception occurred when storing stock info", e);
 			response = createResponse("Error adding "+stock.getSymbol()+" "+e.getMessage(), Optional.of(stock));
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -158,11 +175,40 @@ public class StockAPIController {
 			String userName = validateTokenAndGetUserName(request);
 			if(userName != null && stockList != null && !stockList.isEmpty()) {
 				
-				// Create stock info object from stockinfo wrapper
-				List<StockInfo> stockInfoLst = stockList.stream()
-						.map(item -> new StockInfo(0, item.getSymbol(), item.getAvgStockPrice(), item.getStockCount(), userName, true))
-						.collect(Collectors.toList());
+				//for each item in the list perform the input validation, if anything is false then throw exception
+				long inputInvalidShemaCheck = stockList.parallelStream().filter(a -> false == validateInputValues.apply(a)).count();
+				if(inputInvalidShemaCheck > 0 ) {
+					response = createResponse("Input json format NOT vaild.", Optional.of(new ArrayList<StockInfo>())); 
+					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);	
+				}
+				// check if the list of sybmols already exists in the database
+				BiFunction<String,String, String> queryDBForSymbols = (stockSymbol,userNameValue) -> {
+					StockInfo stockFromDB;
+					try {
+						stockFromDB = stockService.getStockInfoBySymbolAndUser(stockSymbol, userNameValue);
+					} catch (Exception e) {
+						log.error("Exception in fetching data from db part of bifunction. ",e);
+						return null;
+					}
+					return stockFromDB != null?stockFromDB.getSymbol():null;
+				};
 				
+				// Fetch the list of Stocks if already available in database
+				List<String> stockInDatabase = stockList.stream()
+						    .map(item -> queryDBForSymbols.apply(item.getSymbol(),userName))
+						    .filter(dbStockSymbol -> dbStockSymbol != null)
+						    .collect(Collectors.toList());
+				
+				// Create stock info object from stockinfo wrapper
+				// insert only any new symbols that has been added in the input list
+				List<StockInfo> stockInfoLst = stockList.stream()
+				        .filter(item -> !stockInDatabase.contains(item.getSymbol()))
+						.map(item -> new StockInfo(0, item.getSymbol().toUpperCase(), item.getAvgStockPrice(), item.getStockCount(), userName, true))
+						.collect(Collectors.toList());
+				if(stockInfoLst.isEmpty()) {
+					response = createResponse("All Stocks are already exists in the database.", Optional.of(new ArrayList<StockInfo>()));
+					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
+				}
 				List<StockInfo> stockInfoOutput = stockService.storeStocks(stockInfoLst);
 				response = createResponse("Successfully added stocks", Optional.of(stockInfoOutput));
 				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
@@ -336,5 +382,40 @@ public class StockAPIController {
 			return null;
 		}
 	}
+	
+	
+	Function <StockInfoWrapper,Boolean> validateInputValues = input -> {
+		// if the average stock price is 0 but the stock count is greater than 0
+		if(input.getAvgStockPrice() == 0.0f && input.getStockCount() >= 0.0f) return false;
+		if(input.getAvgStockPrice() >= 0.0f && input.getStockCount() == 0.0f) return false;
+		return true;
+	};
+	
+	/**
+	 * Passing the java pojo will be validated against the schema
+	 * @param pojoInput
+	 * @return
+	 */
+	/**
+	 * Below function is not being used right now, since the Body of the POST request is already converted by Spring
+	 * Need to apply different logical validation
+	 */
+	Function<Object,Boolean> validateInputJson = pojoInput -> {
+		
+		String schmeaFile = "input-schema.json"; //if single stock input use specific schema
+
+		//for list of stock validate using different schema
+		try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(schmeaFile)) {
+              System.out.println(jsonMapper.writeValueAsString(pojoInput));
+			  JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+			  org.everit.json.schema.Schema schema = SchemaLoader.load(rawSchema);
+			  schema.validate(new JSONObject(jsonMapper.writeValueAsString(pojoInput))); // throws a ValidationException if this object is invalid
+			}catch(Exception exe) {
+				log.error("Exception occured when validating json schema - ", exe);
+				return false; 
+			}
+		//if validation didn't throw any exception it is successfully validated
+		return true;
+	};
 }
 
