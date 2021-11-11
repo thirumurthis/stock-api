@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Stock",
+    "description": "Stock input json schema",
+    "type": "object",
+    "properties": {
+        "symbol": {
+            "description": "Unique symbol of the stock per finance source like Nasdaq",
+            "type": "string"
+        },
+        "avgStockPrice": {
+            "description": "Average stock price, of invested stock",
+            "type": "number"
+        },
+        "stockCount": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true
+        }
+    },
+    "required": ["symbol", "avgStockPrice", "stockCount"]
+}

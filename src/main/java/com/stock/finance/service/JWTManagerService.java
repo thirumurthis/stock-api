@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -52,7 +53,9 @@ public class JWTManagerService {
       return Jwts.builder().setClaims(claims).setSubject(subject)
                  .setIssuedAt(new Date(System.currentTimeMillis()))
                  .setExpiration(new Date(System.currentTimeMillis()+ 1000*60*60))  // the token will expire in 1 hour
-                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+                 .setHeaderParam("type", "JWT")   //include this so the jwt.io recommendation of valid signature is achieved
+                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                 .compact();
    }
    
    public Boolean validateToken(String token, UserDetails userDetails){

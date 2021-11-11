@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 
 import com.stock.finance.controller.StockAPIController;
 import com.stock.finance.model.StockInfo;
+import com.stock.finance.model.StockInfoWrapper;
 import com.stock.finance.model.api.ApiAppResponse;
 
 
@@ -41,5 +42,18 @@ public class TestStockApiController {
 		Assert.isTrue(out.getStockInfo().size()==2,"List didn't match");		
 		
 	}
-
+	
+	//@Test
+	/*
+	public void testJsonListValidation() {
+		
+		StockInfoWrapper stock1 = StockInfoWrapper.builder().symbol("ONE").avgStockPrice(10.0f).stockCount(5.0f).build();
+		
+		StockAPIController stockController = new StockAPIController();
+		
+		boolean output = ReflectionTestUtils.invokeMethod(stockController, "validateInputJson", stock1);
+		//boolean output = ReflectionTestUtils.invokeMethod(stockController, "simpleCheck");
+		Assert.isTrue(output,"Valid Json only.");
+	}
+   */
 }
