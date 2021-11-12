@@ -1,21 +1,15 @@
 package com.stock.finance.controller;
 
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stock.finance.model.ComputeStockMetrics;
 import com.stock.finance.model.ComputedStockOuputWrapper;
 import com.stock.finance.model.StockInfo;
@@ -55,12 +48,9 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 //Below is the security configuration, where we include the security schema defined in the main class
 //controller class use the securityRequirement schema, to apply security requirement to operation at method level
-@SecurityRequirement(name="stockapp-openapi")
-public class StockAPIController {
+@SecurityRequirement(name="stockapp")
+public class StockAPIController extends StockAPIControllerUtilities{
 
-
-	//object mapper to serialize json string 
-	static	ObjectMapper jsonMapper = new ObjectMapper();
 
 	@Autowired
 	StockStoreService stockService;
@@ -138,12 +128,13 @@ public class StockAPIController {
 					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				}
 				//Create stock info object from stockinfo wrapper
-				StockInfo inputStockInfo = StockInfo.builder()
-						                            .symbol(stock.getSymbol().toUpperCase()) //convert the symbol to upper case
-						                            .stockCount(stock.getStockCount())
-						                            .avgStockPrice(stock.getAvgStockPrice())
-						                            .userName(userName)
-						                            .build();
+				StockInfo inputStockInfo = 
+						StockInfo.builder()
+						         .symbol(stock.getSymbol().toUpperCase()) //convert the symbol to upper case
+						         .stockCount(stock.getStockCount())
+						         .avgStockPrice(stock.getAvgStockPrice())
+						         .userName(userName)
+						         .build();
 				
 				StockInfo stockInfo = stockService.storeStockInfo(inputStockInfo);
 				response = createResponse("Successfully added stock", Optional.of(stockInfo)); 
@@ -162,6 +153,15 @@ public class StockAPIController {
 	/**
 	 * Function to add a list of stocks to the database when stocks are provided in 
 	 * body of the request as a json list format
+	 *  1. validate the token
+	 *  2. check if the json is valid, if avgStockPrice = 0.0, then stockcount cannot be >0 and vice versa
+	 *  3. check if there are duplicate symbols in the list
+	 *      i. Get the duplicate symbol 
+	 *      ii remove the duplicate symobl from the list
+	 *  4. check the database if all the symbols exists
+	 *       i. if exists display message
+	 *       ii else add to the database
+	 *  5. response is sent to client
 	 * @param stock
 	 * @return
 	 */
@@ -174,14 +174,29 @@ public class StockAPIController {
 		try {
 			String userName = validateTokenAndGetUserName(request);
 			if(userName != null && stockList != null && !stockList.isEmpty()) {
-				
+
 				//for each item in the list perform the input validation, if anything is false then throw exception
 				long inputInvalidShemaCheck = stockList.parallelStream().filter(a -> false == validateInputValues.apply(a)).count();
 				if(inputInvalidShemaCheck > 0 ) {
 					response = createResponse("Input json format NOT vaild.", Optional.of(new ArrayList<StockInfo>())); 
 					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);	
 				}
-				// check if the list of sybmols already exists in the database
+
+				//Identify the duplicate from the input list
+				List<String> duplicatedList = findDuplicateSymbols(stockList);
+				// this is for displaying in the response
+				String symbolsVal = "";
+				if(!duplicatedList.isEmpty()) {
+					symbolsVal = duplicatedList.stream().collect(Collectors.joining(","));
+				}
+
+				List<StockInfoWrapper> filteredInputList = filterDuplicateStockInfo(stockList);
+				
+				if(filteredInputList.isEmpty()) {
+					throw new Exception("The input has duplicate symbols "+symbolsVal +" , consolidated it.");
+				}
+				
+				// check if the list of symbols already exists in the database
 				BiFunction<String,String, String> queryDBForSymbols = (stockSymbol,userNameValue) -> {
 					StockInfo stockFromDB;
 					try {
@@ -194,14 +209,14 @@ public class StockAPIController {
 				};
 				
 				// Fetch the list of Stocks if already available in database
-				List<String> stockInDatabase = stockList.stream()
+				List<String> stockInDatabase = filteredInputList.stream()
 						    .map(item -> queryDBForSymbols.apply(item.getSymbol(),userName))
 						    .filter(dbStockSymbol -> dbStockSymbol != null)
 						    .collect(Collectors.toList());
 				
 				// Create stock info object from stockinfo wrapper
 				// insert only any new symbols that has been added in the input list
-				List<StockInfo> stockInfoLst = stockList.stream()
+				List<StockInfo> stockInfoLst = filteredInputList.stream()
 				        .filter(item -> !stockInDatabase.contains(item.getSymbol()))
 						.map(item -> new StockInfo(0, item.getSymbol().toUpperCase(), item.getAvgStockPrice(), item.getStockCount(), userName, true))
 						.collect(Collectors.toList());
@@ -210,11 +225,15 @@ public class StockAPIController {
 					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				}
 				List<StockInfo> stockInfoOutput = stockService.storeStocks(stockInfoLst);
-				response = createResponse("Successfully added stocks", Optional.of(stockInfoOutput));
+				String status = "Successfully added stocks";
+				if(!"".equals(symbolsVal)) {
+					status += " - Consolidate duplicate symbols - "+symbolsVal;
+				}
+				response = createResponse(status, Optional.of(stockInfoOutput));
 				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				
 			}else {
-				throw new Exception("Stock List is empty or Token might have been expired.");
+				throw new Exception(" Input stock List is empty or Token might have been expired.");
 			}
 
 		}catch(Exception e) {
@@ -270,7 +289,7 @@ public class StockAPIController {
 	private final static String FORCE_DELETE = "force";
 	
 	/**
-	 * Function to detete the stock info from data base completely
+	 * Function to delete the stock info from data base completely
 	 * @param symbol
 	 * @param force
 	 * @return
@@ -322,36 +341,13 @@ public class StockAPIController {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	private ApiAppResponse createResponse(String status, Optional<?> information) {
-		ApiAppResponse response = new ApiAppResponse();
-		response.setStatus(status);
-		if(!information.isEmpty()) {
-			Object info = information.get();
-			List<StockInfoWrapper> stockInfoWrapperLst = new ArrayList<>();
-			if ( info instanceof StockInfo) {
-				StockInfo tmpStock = (StockInfo)info;
-				//Create StockInfoWrapper object
-				StockInfoWrapper stockInfoWrapper = StockInfoWrapper.builder()
-																	.symbol(tmpStock.getSymbol())
-																	.avgStockPrice(tmpStock.getAvgStockPrice())
-																	.stockCount(tmpStock.getStockCount())
-																	.build();
-				
-				stockInfoWrapperLst.add(stockInfoWrapper);
-				//response.setStockInfo((List<StockInfo>)info);
-			}
-			if(info instanceof java.util.List) {
-				List<StockInfo> stockList = (List<StockInfo>)info;
-				stockInfoWrapperLst = stockList.stream()
-						.map(item -> new StockInfoWrapper(item.getSymbol(), item.getAvgStockPrice(), item.getStockCount()))
-						.collect(Collectors.toList());
-			}
-			response.setStockInfo(stockInfoWrapperLst);
-		}
-		return response;
-	}
 
+
+	/**
+	 * Below method is used to validate the user info from the token passed
+	 * @param request
+	 * @return
+	 */
 	protected String validateTokenAndGetUserName(HttpServletRequest request) {
 		
 		final String authorizationHeader = request.getHeader("Authorization");
@@ -382,40 +378,5 @@ public class StockAPIController {
 			return null;
 		}
 	}
-	
-	
-	Function <StockInfoWrapper,Boolean> validateInputValues = input -> {
-		// if the average stock price is 0 but the stock count is greater than 0
-		if(input.getAvgStockPrice() == 0.0f && input.getStockCount() >= 0.0f) return false;
-		if(input.getAvgStockPrice() >= 0.0f && input.getStockCount() == 0.0f) return false;
-		return true;
-	};
-	
-	/**
-	 * Passing the java pojo will be validated against the schema
-	 * @param pojoInput
-	 * @return
-	 */
-	/**
-	 * Below function is not being used right now, since the Body of the POST request is already converted by Spring
-	 * Need to apply different logical validation
-	 */
-	Function<Object,Boolean> validateInputJson = pojoInput -> {
-		
-		String schmeaFile = "input-schema.json"; //if single stock input use specific schema
-
-		//for list of stock validate using different schema
-		try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(schmeaFile)) {
-              System.out.println(jsonMapper.writeValueAsString(pojoInput));
-			  JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-			  org.everit.json.schema.Schema schema = SchemaLoader.load(rawSchema);
-			  schema.validate(new JSONObject(jsonMapper.writeValueAsString(pojoInput))); // throws a ValidationException if this object is invalid
-			}catch(Exception exe) {
-				log.error("Exception occured when validating json schema - ", exe);
-				return false; 
-			}
-		//if validation didn't throw any exception it is successfully validated
-		return true;
-	};
 }
 

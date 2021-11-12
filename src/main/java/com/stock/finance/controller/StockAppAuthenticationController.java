@@ -1,12 +1,9 @@
 package com.stock.finance.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.finance.model.AuthenticationRequest;
-import com.stock.finance.model.ComputeStockMetrics;
 import com.stock.finance.model.api.AuthenticationResponse;
 import com.stock.finance.model.api.SimpleStatusResponse;
 import com.stock.finance.service.CustomUserDetailsService;
@@ -84,7 +80,7 @@ public class StockAppAuthenticationController {
 				if(userInfo.getUserName()!=null || !"".equals(userInfo.getUserName())) {
 					String userFromDB =userService.getUserNameInfo(userInfo.getUserName());
 					if(userFromDB!=null && userFromDB.contains(userInfo.getUserName())) {
-						return new ResponseEntity<>(new SimpleStatusResponse("User Name : "+ userInfo.getUserName() +" already exists in database!!"),HttpStatus.OK);
+						return new ResponseEntity<>(new SimpleStatusResponse("User Name "+ userInfo.getUserName() +" already exists in database!!"),HttpStatus.OK);
 					}
 				}
 				//else create a new user and save in database
@@ -99,15 +95,15 @@ public class StockAppAuthenticationController {
 					user.setRoles("ROLE_USER");
 				}
 				String storedUserName = userService.saveUser(user);
-				log.info("Singup endpoint invoked with user info "+user.getUserName());
-				return new ResponseEntity<>(new SimpleStatusResponse("Welcome "+ storedUserName +" !!!, Successfully singed up!!"),HttpStatus.OK); 
+				log.info("SignUp endpoint invoked with user info "+user.getUserName());
+				return new ResponseEntity<>(new SimpleStatusResponse("Welcome "+ storedUserName +" !!!, Successfully signed up!!"),HttpStatus.OK); 
 			}else {
 				log.warn("/singup endpoint invoked, the user info object is null");
-				return new ResponseEntity<>(new SimpleStatusResponse("Signup form didn't successfully store user info."),HttpStatus.OK);	
+				return new ResponseEntity<>(new SimpleStatusResponse("SignUp form didn't successfully store user info."),HttpStatus.OK);	
 			}
 		}catch(Exception e) {
 			log.error("/singup endpoint invoked, exception occured ",e);
-			return new ResponseEntity<>(new SimpleStatusResponse("Signup form didn't successfully store user info."),HttpStatus.INTERNAL_SERVER_ERROR);	
+			return new ResponseEntity<>(new SimpleStatusResponse("SignUp form didn't successfully store user info."),HttpStatus.INTERNAL_SERVER_ERROR);	
 		}
 	}	
 }
