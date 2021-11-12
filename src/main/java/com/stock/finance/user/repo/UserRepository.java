@@ -7,4 +7,6 @@ import com.stock.finance.user.model.Users;
 public interface UserRepository extends JpaRepository<Users,String>{
 
 	Users findByUserName(String userName);
+	Users findByApiKey(String apiKey);	
+	Users findByUserNameAndApiKey(String userName, String apiKey);
 }

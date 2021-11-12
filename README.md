@@ -8,13 +8,13 @@ Stock api to monitor the financial profit loss
  - In order to access this api, use below end-point to signup
    - This endpoint will store the user info in H2 DB
 
-##### End-point to `singup`
+##### End-point to `signup`
 ```
 ## POST
  
 /stock-app/signup
 ```
- - INPUT: Include username and password in the request body
+ - INPUT: Provide username and password in the body of POST request
 
 ```json
  {
@@ -27,7 +27,8 @@ Stock api to monitor the financial profit loss
 
 ```json
 {
-    "statusMessage": "Welcome <<username>> !!!, Successfully singed up!!"
+    "statusMessage": "Welcome <<username>> !!!, successfully signed up. Use API key to generate token.",
+    "apiKey": "AA11223344556677BB"
 }
 ```
 
@@ -40,6 +41,35 @@ Stock api to monitor the financial profit loss
 ## POST 
 /stock-app/token
 ```
+
+ - INPUT: Use signed up username and provided apiKey info in the body of POST request
+
+```json 
+ {
+  "userName":"username",
+  "apiKey":"AA11223344556677BB"
+ }
+```
+
+ - OUTPUT: jwt token in Json repsonse
+ 
+```json 
+{
+    "status": "Token generated at 2021-11-12 08:33:58",
+    "jwtToken": "xxxx.yyyy.zzzz"
+}
+```
+
+##### To retrieve the API key using username and password and generate jwt token
+
+  - Once `signed up` with the user name
+  - Hit the below end point, to get the API key and generated jwt token
+
+```
+## POST 
+/stock-app/apikey
+```
+
  - INPUT: username and password info in the body of POST request
 
 ```json 
@@ -53,7 +83,9 @@ Stock api to monitor the financial profit loss
  
 ```json 
 {
-  "jwtToken": "yyyyyyyy.xxxxxxxxxxxxxxxx.zzzzzzzzzz"
+    "status": "Token generated at 2021-11-12 14:17:31",
+    "jwtToken": "xxxxx.yyyyy.zzzz",
+    "apiKey": "AA11223344556677BB"
 }
 ```
 
@@ -61,17 +93,17 @@ Stock api to monitor the financial profit loss
 
 - In order to add stocks to the database use below end-point
   - use the token in the POST request HTTP header like below
-   ```
+  
+```
    Authorization : Bearer xxxxx.yyyy.zzzz
    Content-Type : "application/json"
-   
-  ```
-    
+```
 
 ```
 ## POST
 /stock/v1/add
 ````
+
  - INPUT: json input to be sent in the body of the POST request
    - use the same structure
 
@@ -83,7 +115,7 @@ Stock api to monitor the financial profit loss
 }
 ```
 
- - Output: json repsone after added the stock info to DB
+ - Output: JSON response after added the stock info to DB
  
 ```json 
 {
@@ -100,10 +132,11 @@ Stock api to monitor the financial profit loss
 
 ##### In order to add list of stock using json Array
    - pass the in JWT token as a Request header as below 
-   ```
+
+```
    Authorization : Bearer xxxxx.yyyy.zzzz
    Content-Type : "application/json"
-   ```
+```
    
 ```
 ## POST request
@@ -112,13 +145,18 @@ Stock api to monitor the financial profit loss
 
  - INPUT: Pass the below json structure in the body of POST Http request.
   - Use the generated JWT token to access the end-point, like below
-   ```
+
+```
    Authorization : Bearer xxxxx.yyyy.zzzz
    Content-Type : "application/json"
-  ```
+```
+
+  - NOTE: When there are duplicate symobls, those will NOT be stored to database
+          Consolidate those and submit the request
 
 ```json
-[{
+[
+   {
 		"symbol": "MSFT",
 		"stockCount": "10.0",
 		"avgStockPrice": "200.50"
@@ -127,14 +165,25 @@ Stock api to monitor the financial profit loss
 		"symbol": "INTC",
 		"stockCount": "5.0",
 		"avgStockPrice": "50.00"
-}]
+    },
+	{
+		"symbol": "KR",
+		"stockCount": "5.0",
+		"avgStockPrice": "50.00"
+   },
+	{
+		"symbol": "KR",
+		"stockCount": "5.0",
+		"avgStockPrice": "50.00"
+   }
+]
 ```
 
   - OUTPUT : Response from the API
   
 ```json
 {
-    "status": "Successfully added stocks",
+    "status": "Successfully added stocks - Consolidate duplicate symbols - KR",
     "stockInfo": [{
 		"symbol": "MSFT",
 		"stockCount": "10.0",
@@ -150,10 +199,11 @@ Stock api to monitor the financial profit loss
 ##### To get the stock details with computed metrics use below end-point
   - The list of stock info stored under the specific user will be computed and displayed in the response
   - Pass the JWT token part of the POST request header.
-   ```
+
+```
    Authorization : Bearer xxxxx.yyyy.zzzz
    Content-Type : "application/json"  
-   ```
+```
   
   
 ```
@@ -200,6 +250,6 @@ Stock api to monitor the financial profit loss
 
  - Once the user has signed up with the username and password.
  - Access end-point with URL - `http://<domain>/swagger-ui/index.html`
- - Once Swagger UI is rendered, input `/stockapp-openapi`
+ - Once Swagger UI is rendered, input `/stockapp`
  - To explore the API end-points, use username & password used to sign-up for API to access.
  

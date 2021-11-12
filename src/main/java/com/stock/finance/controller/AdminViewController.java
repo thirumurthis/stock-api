@@ -72,16 +72,19 @@ public class AdminViewController {
 			if(!issueInAccess && isValidToken && userName != null || !"".equals(userName) && userName.equals(tokenUserName)) {
 				String userDetailInfo = userService.getUserNameInfo(userName);
 				if(userDetailInfo == null) {
-					return new ResponseEntity<>(new SimpleStatusResponse("User Not exists in the database."),HttpStatus.OK);
+					return new ResponseEntity<>(SimpleStatusResponse.builder().statusMessage("User Not exists in the database.").build()
+							                   ,HttpStatus.OK);
 				}
-				return new ResponseEntity<>(new SimpleStatusResponse(userDetailInfo),HttpStatus.OK);
+				return new ResponseEntity<>(SimpleStatusResponse.builder().statusMessage(userDetailInfo).build(),HttpStatus.OK);
 			}else {
-				return new ResponseEntity<>(new SimpleStatusResponse("You don't have access to this end-point"),HttpStatus.OK);					
+				return new ResponseEntity<>(SimpleStatusResponse.builder().statusMessage("You don't have access to this end-point").build()
+						                                   ,HttpStatus.OK);					
 			}
 		}
 		catch(Exception e) {
 			log.error("user name endpoint error occured ",e);
-			return new ResponseEntity<>(new SimpleStatusResponse("User name info errored out."),HttpStatus.INTERNAL_SERVER_ERROR);	
+			return new ResponseEntity<>(SimpleStatusResponse.builder().statusMessage("User name info errored out.").build()
+					                                ,HttpStatus.INTERNAL_SERVER_ERROR);	
 		}
 	}
 }

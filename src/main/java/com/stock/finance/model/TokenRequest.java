@@ -1,19 +1,16 @@
-package com.stock.finance.model.api;
+package com.stock.finance.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SimpleStatusResponse {
+public class TokenRequest {
 
-	private String statusMessage;
+	private String userName;
 	private String apiKey;
-	
 }

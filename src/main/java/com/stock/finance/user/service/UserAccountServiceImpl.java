@@ -17,10 +17,10 @@ public class UserAccountServiceImpl implements UserAccountService{
 	
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public String saveUser(Users user) throws Exception{
+	public Users saveUser(Users user) throws Exception{
 		user.setPassword(encoder.encode(user.getPassword()));
 		Users userInfo =  userRepo.save(user);
-		return userInfo.getUserName();
+		return userInfo;
 	}
 
 	@Override
@@ -31,6 +31,18 @@ public class UserAccountServiceImpl implements UserAccountService{
 		}else {
 			return null;
 		}
+	}
+
+	@Override
+	public Users getUserInfo(String userName, String apiKey) throws Exception {
+		Users user = userRepo.findByUserNameAndApiKey(userName, apiKey);
+		return user;
+	}
+
+	@Override
+	public Users getUserUsingApiKey(String apiKey) throws Exception {
+		Users user = userRepo.findByApiKey(apiKey);
+		return user;
 	}
 
 }

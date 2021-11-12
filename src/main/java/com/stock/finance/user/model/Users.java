@@ -1,18 +1,9 @@
 package com.stock.finance.user.model;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import org.springframework.data.relational.core.mapping.MappedCollection;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,6 +36,10 @@ public class Users {
   //  @OneToMany(mappedBy="users")
    // @MappedCollection(keyColumn = "USERNAME", idColumn = "USERNAME")
    // private List<Authorities> authorities;
+    
+    //api key - for app when signed up
+    @Column(name ="API_KEY", nullable = false)
+    private String apiKey;
     
     /*
     @Transient

@@ -193,7 +193,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 				List<StockInfoWrapper> filteredInputList = filterDuplicateStockInfo(stockList);
 				
 				if(filteredInputList.isEmpty()) {
-					throw new Exception("The input has duplicate symbols "+symbolsVal +" , consolidated it.");
+					throw new Exception("The input contains duplicate symbols "+symbolsVal +" , consolidate it.");
 				}
 				
 				// check if the list of symbols already exists in the database
@@ -227,13 +227,13 @@ public class StockAPIController extends StockAPIControllerUtilities{
 				List<StockInfo> stockInfoOutput = stockService.storeStocks(stockInfoLst);
 				String status = "Successfully added stocks";
 				if(!"".equals(symbolsVal)) {
-					status += " - Consolidate duplicate symbols - "+symbolsVal;
+					status += " - Duplicate symbols identified - ["+symbolsVal+ "], consolidate it.";
 				}
 				response = createResponse(status, Optional.of(stockInfoOutput));
 				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				
 			}else {
-				throw new Exception(" Input stock List is empty or Token might have been expired.");
+				throw new Exception("Input stock List is empty or Token might have been expired.");
 			}
 
 		}catch(Exception e) {

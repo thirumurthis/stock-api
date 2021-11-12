@@ -28,11 +28,11 @@ public class JWTManagerService {
    }
    
    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
-     final Claims claims = extractAllclaims(token);
+     final Claims claims = extractAllClaims(token);
      return claimsResolver.apply(claims);
    }
    
-   private Claims extractAllclaims(String token){
+   private Claims extractAllClaims(String token){
 	   //parserClaimsJwt threw below signed claim error 
 	   // Actual error message Signed Claims JWSs are not supported.
 	   // recommendation was to use parseClaimsJws
@@ -61,4 +61,22 @@ public class JWTManagerService {
       final String userName = extractUserName(token);
       return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
    }
+   
+   public Boolean validateToken(String token, UserDetails userDetails, String apiKey){
+	      final String userName = extractUserName(token);
+	      final String apiKeyFromToken = extractClaimsForKey(token, "apikey");
+	      return (userName.equals(userDetails.getUsername()) && apiKeyFromToken.equals(apiKey) && !isTokenExpired(token));
+   }
+   
+   public String generateTokenWithApi(String userName, String apiToken){
+	      Map<String, Object> claims = new HashMap<>(); // for testing this is empty
+	      claims.put("apikey", apiToken);
+	      return createToken(claims,userName);
+	   }
+
+   public String extractClaimsForKey(String token,String key){
+	   Claims claim =   extractAllClaims(token);
+	   return claim.get(key)!=null?claim.get(key).toString():null;
+   }
+   
 }

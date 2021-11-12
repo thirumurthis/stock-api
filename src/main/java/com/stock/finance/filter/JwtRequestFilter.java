@@ -1,17 +1,13 @@
 package com.stock.finance.filter;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.AntPathRequestMatcherProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,12 +16,14 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.stock.finance.service.CustomUserDetailsService;
 import com.stock.finance.service.JWTManagerService;
+import com.stock.finance.user.model.CustomUserDetails;
 
 public class JwtRequestFilter extends OncePerRequestFilter {
 
 	@Autowired
-	private UserDetailsService userDetailsService;
+	private CustomUserDetailsService userDetailsService;
 
 	@Autowired
 	private JWTManagerService jwtManager;
@@ -38,7 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	 protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 	    return (new AntPathMatcher().match("/stock-app/**", request.getServletPath()) 
 	    		|| new AntPathMatcher().match("/swagger-ui/**", request.getServletPath())
-	    		||new AntPathMatcher().match("/stockapp-openapi/**", request.getServletPath())
+	    		||new AntPathMatcher().match("/stockapp/**", request.getServletPath())
 	    		|| new AntPathMatcher().match("/v3/api-docs/**", request.getServletPath()) );
 	 }
 	 
@@ -63,10 +61,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		//in case the token didn't had the username, fetch it and validate, set to context
 
 		if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+			CustomUserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
 			// since the user details is fetched, check if the jwt is valid and not expired
-			if (jwtManager.validateToken(jwt,userDetails)){
+			if (jwtManager.validateToken(jwt,userDetails,userDetails.getApiKey())){
 				// below step will do this automatically, but sine we need to perform this
 				// only when the jwt is validated.
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
