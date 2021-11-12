@@ -1,12 +1,17 @@
 package com.stock.finance.model.api;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
-
+@Builder
 public class AuthenticationResponse {
 
+	private final String status;
 	private final String jwtToken;
+	private final String apiKey;
 }

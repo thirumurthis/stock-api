@@ -9,21 +9,25 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import lombok.Builder;
+
 //Currently not used
-@Deprecated
+//@Deprecated
 public class CustomUserDetails implements UserDetails{
 
 	private static final long serialVersionUID = 1L;
 	private final Set<GrantedAuthority> authorities;
 	private final String username,password;
 	private final boolean active;
+	private final String apiKey;
 	// we will initalize a construtor to get the values
 
 	// this is a simple domain 
-	public CustomUserDetails (String username, String password, boolean active, String ... authorities){
+	public CustomUserDetails (String username, String password, boolean active, String apiKey, String ... authorities){
 		this.username=username;
 		this.password=password;
 		this.active = active;
+		this.apiKey = apiKey;
 		this.authorities = Stream.of(authorities)
 				.map(SimpleGrantedAuthority::new)  // this is shortcut of a -> new SimpleGrantedAuthority()
 				.collect(Collectors.toSet()); // the passed in value is converted as set here
@@ -58,5 +62,9 @@ public class CustomUserDetails implements UserDetails{
 	@Override
 	public boolean isEnabled() {
 		return this.active;
+	}
+	
+	public String getApiKey () {
+		return this.apiKey;
 	}
 }
