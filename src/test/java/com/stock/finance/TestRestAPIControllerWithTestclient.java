@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -17,11 +19,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stock.finance.service.CustomUserDetailsService;
+import com.stock.finance.user.service.UserAccountService;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class TestRestAPIControllerWithTestclient {
@@ -37,8 +43,12 @@ public class TestRestAPIControllerWithTestclient {
 	}
 
 	@Test
+	@Disabled
+	@WithMockUser(username = "user",password = "user")
+	@WithUserDetails()
 	void postTest() {
-		String token = getJWTTokenForTest();
+		String apiKey = getSignUPTest();
+		String token = getJWTTokenForTest(apiKey);
 		Assert.isTrue(token!=null,"[postTest] JWT token shouldn't be null");
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode root = null;
@@ -50,26 +60,55 @@ public class TestRestAPIControllerWithTestclient {
 		} catch (JsonProcessingException e) {
 			Assert.isTrue(false,"Exception occurred: "+e.getMessage());
 		}
-
 	}
 
+	@Autowired
+	UserAccountService userService;
+	
 	/*
 	 * Common class that can be used to get the token info
 	 */
-	protected String getJWTTokenForTest() {
+	protected String getJWTTokenForTest(String apiKey) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		String bodyContent = "{\"userName\":\"user\",\"apiKey\":\""+apiKey+"\"}";
+
+		HttpEntity<String> requestEntity = new HttpEntity<>(bodyContent, headers);
+		String token = restTemplate
+				.postForObject("/stock-app/token",requestEntity, String.class);
+		return token;
+	}
+	
+	protected String getSignUPTest() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		String bodyContent = "{\"userName\":\"user\",\"password\":\"user\"}";
 
 		HttpEntity<String> requestEntity = new HttpEntity<>(bodyContent, headers);
 		String token = restTemplate
-				.postForObject("/stock-app/authenticate",requestEntity, String.class);
-		return token;
+				.postForObject("/stock-app/signup",requestEntity, String.class);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode root = null;
+		JsonNode apiKey = null;
+		try {
+			root = mapper.readTree(token);
+			apiKey = root.path("apiKey");
+			Assert.isTrue(apiKey.asText()!=null, "Token received successfully");
+		} catch (JsonProcessingException e) {
+			Assert.isTrue(false,"Exception occurred: "+e.getMessage());
+		}
+		
+		return apiKey.asText();
 	}
 
 	@Test
+	@Disabled
+	@WithMockUser(username ="user",password="user")
+	@WithUserDetails
 	void postGetTest() {
-		String token = getJWTTokenForTest();
+		String apiKey = getSignUPTest();
+		String token = getJWTTokenForTest(apiKey);
 		Assert.isTrue(token!=null,"[postGetTest] JWT token shouldn't be null");
 
 		ObjectMapper mapper = new ObjectMapper();

@@ -41,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	 }
 	 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse respone, FilterChain chain) throws ServletException, IOException {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
 
 		// this is where we example the jwt in header, and validate it.
 
@@ -61,20 +61,27 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		//in case the token didn't had the username, fetch it and validate, set to context
 
 		if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			CustomUserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+			CustomUserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
 			// since the user details is fetched, check if the jwt is valid and not expired
 			if (jwtManager.validateToken(jwt,userDetails,userDetails.getApiKey())){
 				// below step will do this automatically, but sine we need to perform this
 				// only when the jwt is validated.
-				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken 
+				                         = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
 				usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
 				// this executes only when the authentication is null       
 				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-				chain.doFilter(request, respone);
+				chain.doFilter(request, response);
 			}
 		}
+		/*else {
+			if(username != null && SecurityContextHolder.getContext().getAuthentication() != null
+					 && username.equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
+				chain.doFilter(request, response);
+			};
+		}*/
 		/*
 		String urlPath = request != null ? request.getRequestURI():null;
 		String[] splitPath = urlPath != null? urlPath.split("/"):null;
