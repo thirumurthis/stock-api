@@ -9,10 +9,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/*
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
+*/
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stock.finance.model.StockInfo;
 import com.stock.finance.model.StockInfoWrapper;
@@ -114,6 +115,14 @@ public class StockAPIControllerUtilities {
 	 * Below function is not being used right now, since the Body of the POST request is already converted by Spring
 	 * Need to apply different logical validation
 	 */
+	 /* Add below dependency to enable the json validator
+	  	<dependency>
+			<groupId>org.everit.json</groupId>
+			<artifactId>org.everit.json.schema</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+	  */
+	/* 
 	Function<Object,Boolean> validateInputJson = pojoInput -> {
 		
 		String schmeaFile = "input-schema.json"; //if single stock input use specific schema
@@ -131,6 +140,6 @@ public class StockAPIControllerUtilities {
 		//if validation didn't throw any exception it is successfully validated
 		return true;
 	};
-	
+    */	
 
 }
