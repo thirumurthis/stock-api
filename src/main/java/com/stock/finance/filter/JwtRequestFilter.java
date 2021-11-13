@@ -36,7 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	 protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 	    return (new AntPathMatcher().match("/stock-app/**", request.getServletPath()) 
 	    		|| new AntPathMatcher().match("/swagger-ui/**", request.getServletPath())
-	    		||new AntPathMatcher().match("/stockapp/**", request.getServletPath())
+	    		|| new AntPathMatcher().match("/stockapp/**", request.getServletPath())
 	    		|| new AntPathMatcher().match("/v3/api-docs/**", request.getServletPath()) );
 	 }
 	 
@@ -76,23 +76,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 				chain.doFilter(request, response);
 			}
 		}
+		//In case if the security context is with authentication prinicpal, we can perfrom below
+		// since in our case we are not persisting any session we don't need it.
 		/*else {
 			if(username != null && SecurityContextHolder.getContext().getAuthentication() != null
 					 && username.equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
 				chain.doFilter(request, response);
 			};
 		}*/
-		/*
-		String urlPath = request != null ? request.getRequestURI():null;
-		String[] splitPath = urlPath != null? urlPath.split("/"):null;
-		String currentPath = splitPath!=null?splitPath[splitPath.length-1]:null;
-		List<String> allowedPath = Arrays.asList("about","info","authenticate");
-		if(currentPath != null && allowedPath.contains(currentPath)){
-			SecurityContextHolder.getContext().setAuthentication(null);
-			chain.doFilter(request, respone);
-		}
-		*/
 	}
-
-
 }
