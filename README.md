@@ -251,5 +251,5 @@ Stock api to monitor the financial profit loss
  - Once the user has signed up with the username and password.
  - Access end-point with URL - `http://<domain>/swagger-ui/index.html`
  - Once Swagger UI is rendered, input `/stockapp`
- - To explore the API end-points, use username & password used to sign-up for API to access.
+ - Most cases the swagger UI will open directly. If prompted provide username & password used during signup.
  

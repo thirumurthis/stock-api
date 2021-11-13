@@ -26,7 +26,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 		http.httpBasic()
 		     .and()
             .authorizeRequests()
-			.antMatchers("/stock-app/**","/swagger-ui/**","/stockapp-openapi/**").permitAll()
+			.antMatchers("/stock-app/**","/swagger-ui/**","/stockapp/**").permitAll()
 			.antMatchers("/h2-console/**").hasRole("ADMIN")
 			.antMatchers("/**").authenticated()
 			.anyRequest().authenticated()
