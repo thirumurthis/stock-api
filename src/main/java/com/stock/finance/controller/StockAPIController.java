@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -16,11 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.finance.model.ComputeStockMetrics;
@@ -377,6 +380,18 @@ public class StockAPIController extends StockAPIControllerUtilities{
 		}else {
 			return null;
 		}
+	}
+	
+	/**
+	 * If the controller thorws nosuchelement exception handler it here
+	 * @param e
+	 * @return
+	 */
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ExceptionHandler(NoSuchElementException.class)
+	public String return404Error(NoSuchElementException e) {
+		log.error("Exception occured during process.");
+		return e.getMessage();
 	}
 }
 

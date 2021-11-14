@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +28,7 @@ public class Users {
     private String email;
     
     @Column(name="PASSWORD", nullable = false)
+    @JsonIgnore  //So this won't be displayed in the bean
     private String password;
     
     @Column(name="ACTIVE",nullable = false,columnDefinition = "boolean default true")

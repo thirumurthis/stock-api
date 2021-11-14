@@ -36,6 +36,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
@@ -96,6 +97,7 @@ public class StockAppAuthenticationController {
 	@Value("${admin.user.info:secretadmin}")
 	private String adminUserInfo;
 	
+	@Tag(name="Signup", description="Use this the sign up for API.")
 	@Operation(description="This end-point is used to register or sign-up the user to access the API.",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= SimpleStatusResponse.class)))})
 	@PostMapping("/signup")
