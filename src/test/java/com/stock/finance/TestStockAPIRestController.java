@@ -2,6 +2,7 @@ package com.stock.finance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -64,11 +65,13 @@ import com.stock.finance.user.repo.UserRepository;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
+import static org.mockito.BDDMockito.*;
+
 //@SpringBootTest
 //@DataJpaTest
-//@WebMvcTest(StockAPIController.class)
-@SpringBootTest(
-	    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@WebMvcTest(StockAPIController.class)
+//@SpringBootTest(
+//	    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	  //  classes = StockAPIController.class)
 /*
 @TestExecutionListeners({
@@ -93,15 +96,21 @@ public class TestStockAPIRestController {
     @Autowired
 	private JWTManagerService jwtMangerService; // = new JWTManagerService();
     
-	@Autowired
-    //@MockBean
+   // @MockBean
+   // JwtRequestFilter jwtRequestFilter;
+    
+	//@Autowired
+    @MockBean
 	private CustomUserDetailsService userDetailsService;// = new CustomUserDetailsService();
     
-    @BeforeEach
+    //@BeforeEach
     public void setUp() throws ServletException, IOException
     {
     	//security context when set is set within the session
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        		.apply(springSecurity())
+        		.addFilters(jwtAuthenticationFilter)
+        		.build();
         
         //mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
        // MockitoAnnotations.initMocks(this);
@@ -131,6 +140,7 @@ public class TestStockAPIRestController {
 	@MockBean
 	StockStoreService stockService;
 		
+	
 	@Disabled
 	@Test
 	@WithMockUser  // we saw this on the method level security test case
@@ -146,6 +156,8 @@ public class TestStockAPIRestController {
 				.header(HttpHeaders.AUTHORIZATION,"Bearer "+token)
 				.accept(MediaType.APPLICATION_JSON)
 				.content(this.objectMapper.writeValueAsString(stock));
+		
+		when(userDetailsService.loadUserByUsername("user")).thenReturn(new CustomUserDetails("user", "", true, "TESTAPIKEY", "ROLE_USER"));
 		
 		Mockito.when(stockService.storeStockInfo(stock)).thenReturn(stock);
 		mockMvc.perform(request)
@@ -165,19 +177,17 @@ public class TestStockAPIRestController {
 	        "user",
 	        Collections.singletonList(new SimpleGrantedAuthority("user"))
 	    );*/
-		/*
-		JwtRequestFilter filter = new JwtRequestFilter();
+		//*
 	    String jwt = jwtMangerService.generateTokenWithApi("user", "TESTAPIKEY");
 	    MockHttpServletRequest request = new MockHttpServletRequest();
 	    request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
 	    request.setRequestURI("/stock-app/token");
 	    MockHttpServletResponse response = new MockHttpServletResponse();
 	    MockFilterChain filterChain = new MockFilterChain();
-	    filter.doFilter(request, response, filterChain);
 	    assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-	    assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("test-user");
+	    assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("user");
 	    assertThat(SecurityContextHolder.getContext().getAuthentication().getCredentials().toString()).isEqualTo(jwt);
-	    */
+	    //*/
 		
 		String token = jwtMangerService.generateTokenWithApi("user", "TESTAPIKEY");
 		//System.out.println("TOKEN ++++++++++++> "+token);
@@ -191,15 +201,16 @@ public class TestStockAPIRestController {
         //Mockito.when(jwtMangerService.extractUserName("")).thenReturn("user");
 		//SecurityContextHolder.getContext().getAuthentication()
 		Mockito.when(userDetailsService.loadUserByUsername("user")).thenReturn(new CustomUserDetails("user", "", true, "TESTAPIKEY", "ROLE_USER"));
+		//Mockito.when(jwtAuthenticationFilter.doFilter(request, response, filterChain))
 		SecurityContext seContext = SecurityContextHolder.createEmptyContext();
         MvcResult result =mockMvc.perform(post("/stock-app/token")
         		.sessionAttr(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, seContext)
 				.header(HttpHeaders.AUTHORIZATION,"Bearer "+token)
-				.content(bodyRequest)
+				.content(bodyRequest)				
         		.accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
         
-        String response = result.getResponse().getContentAsString();
-        System.out.println("RESPONSE +++ "+response);
+        String response1 = result.getResponse().getContentAsString();
+        System.out.println("RESPONSE +++ "+response1);
 	}
 }

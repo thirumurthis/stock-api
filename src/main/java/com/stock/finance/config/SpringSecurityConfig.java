@@ -26,7 +26,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 		http.httpBasic()
 		     .and()
             .authorizeRequests()
-			.antMatchers("/stock-app/**","/swagger-ui/**","/stockapp/**").permitAll()
+			.antMatchers("/stock-app/**","/swagger-ui/**","/stockapp/**","/swagger-ui**").permitAll()
 			.antMatchers("/h2-console/**").hasRole("ADMIN")
 			.antMatchers("/**").authenticated()
 			.anyRequest().authenticated()
@@ -36,7 +36,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 			.and()
 			.logout().permitAll();
 		http.exceptionHandling().accessDeniedPage("/403");
-		http.csrf().disable();
+		http.csrf().disable(); // Since we enabled sessionless state, we can disable this safely
 		//http.csrf().ignoringAntMatchers("/h2-console/**","/stock/v1/add","/v1/authenticate");
 		http.headers().frameOptions().disable();
 		

@@ -248,8 +248,13 @@ Stock api to monitor the financial profit loss
 
 #####  Swagger open api v3 - access
 
- - Once the user has signed up with the username and password.
+ - Use the direct url `http://infinite-brook-26118.herokuapp.com/swagger-ui.html`
+ 
+ Or
+ 
  - Access end-point with URL - `http://<domain>/swagger-ui/index.html`
  - Once Swagger UI is rendered, input `/stockapp`
  - Most cases the swagger UI will open directly. If prompted provide username & password used during signup.
+ 
+ 
  

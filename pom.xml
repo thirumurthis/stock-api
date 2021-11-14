@@ -73,11 +73,20 @@
 		-->
 		
 		<!-- Swagger UI -->
+		<!-- This  -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.2.32</version>
+			<version>1.5.12</version>
 		</dependency>
+		<!--  when using spring data repository, use below dependency in pom.xml -->
+		<!-- 
+		<dependency>
+		    <groupId>org.springdoc</groupId>
+		    <artifactId>springdoc-openapi-data-rest</artifactId>
+		    <version>1.4.5</version>
+		</dependency>
+		-->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
