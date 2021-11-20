@@ -109,7 +109,7 @@ public class StockAppAuthenticationController {
 					String userFromDB =userService.getUserNameInfo(userInfo.getUserName());
 					if(userFromDB!=null && userFromDB.contains(userInfo.getUserName())) {
 						return new ResponseEntity<>(SimpleStatusResponse.builder()
-								                       .statusMessage("User "+userFromDB+ " already exits in system, use API key for accessing end point to generate token.")
+								                       .statusMessage("Hi, "+userFromDB+ " already a registered, use /apikey endpoint for API key.")
 								                       .build(),HttpStatus.OK);
 					}
 				}

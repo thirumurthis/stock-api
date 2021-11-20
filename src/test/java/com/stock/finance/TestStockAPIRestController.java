@@ -69,7 +69,8 @@ import static org.mockito.BDDMockito.*;
 
 //@SpringBootTest
 //@DataJpaTest
-@WebMvcTest(StockAPIController.class)
+@WebMvcTest(controllers = StockAPIController.class)
+//(StockAPIController.class,)
 //@SpringBootTest(
 //	    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	  //  classes = StockAPIController.class)
@@ -90,26 +91,29 @@ public class TestStockAPIRestController {
     @MockBean
     private UserRepository userRepo;
 
-    @InjectMocks
-    private JwtRequestFilter jwtAuthenticationFilter = new JwtRequestFilter();
+   // @InjectMocks
+   // private JwtRequestFilter jwtAuthenticationFilter = new JwtRequestFilter();
 
-    @Autowired
+   // @Autowired
+    @MockBean
 	private JWTManagerService jwtMangerService; // = new JWTManagerService();
     
-   // @MockBean
-   // JwtRequestFilter jwtRequestFilter;
+    @MockBean
+    JwtRequestFilter jwtRequestFilter;
     
 	//@Autowired
     @MockBean
 	private CustomUserDetailsService userDetailsService;// = new CustomUserDetailsService();
     
-    //@BeforeEach
+    @BeforeEach
     public void setUp() throws ServletException, IOException
     {
     	//security context when set is set within the session
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        		//MockMvcBuilders.standaloneSetup(StockAPIController.class)
         		.apply(springSecurity())
-        		.addFilters(jwtAuthenticationFilter)
+        		//.addFilters(jwtAuthenticationFilter)
+        		//.
         		.build();
         
         //mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
@@ -120,11 +124,10 @@ public class TestStockAPIRestController {
 	//@Autowired
 	//JwtRequestFilter filter;
 	
-	@Disabled
+	//@Disabled
 	@Test
 	//@WithMockUser  // we saw this on the method level security test case
 	public void allowAll() throws Exception{
-
 		mockMvc.perform(get("/stock-app/about"))
 		       .andExpect(status().isOk());
 	 
@@ -141,11 +144,12 @@ public class TestStockAPIRestController {
 	StockStoreService stockService;
 		
 	
-	@Disabled
+	//@Disabled
 	@Test
 	@WithMockUser  // we saw this on the method level security test case
 	public void postAddStockTest() throws Exception{
 		
+		JWTManagerService jwtMangerService = new JWTManagerService();
 		String token = jwtMangerService.generateTokenWithApi("user", "TESTAPIKEY");
 		
 		//Using Builder pattern approach
@@ -178,6 +182,7 @@ public class TestStockAPIRestController {
 	        Collections.singletonList(new SimpleGrantedAuthority("user"))
 	    );*/
 		//*
+		JWTManagerService jwtMangerService= new JWTManagerService();
 	    String jwt = jwtMangerService.generateTokenWithApi("user", "TESTAPIKEY");
 	    MockHttpServletRequest request = new MockHttpServletRequest();
 	    request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);

@@ -27,7 +27,7 @@ public class UserAccountServiceImpl implements UserAccountService{
 	public String getUserNameInfo(String userName) throws Exception{
 		Users user = userRepo.findByUserName(userName);
 		if(user != null) {
-		   return user.getUserName()+" :: "+user.getRoles();
+		   return user.getUserName();
 		}else {
 			return null;
 		}
