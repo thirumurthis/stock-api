@@ -74,7 +74,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 				// this executes only when the authentication is null       
 				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-				chain.doFilter(request, response);
+				//chain.doFilter(request, response);
 			}
 		}
 		//In case if the security context is with authentication prinicpal, we can perfrom below
@@ -85,5 +85,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 				chain.doFilter(request, response);
 			};
 		}*/
+		
+		chain.doFilter(request, response);
 	}
 }
