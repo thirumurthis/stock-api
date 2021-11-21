@@ -298,10 +298,11 @@ public class StockAPIController extends StockAPIControllerUtilities{
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@DeleteMapping("/delete/{symbol}/{force}")
 	public ResponseEntity<ApiAppResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force, HttpServletRequest request){
-		ApiAppResponse response;
+		ApiAppResponse response = null;
 		StockInfo stock = null;
 		try {
 			boolean forceDelete= false;
+			boolean deleteAll = false;
 			String userName = validateTokenAndGetUserName(request);
 			if(userName == null) {
 				throw new Exception("User name not exits or Token Expired.");
@@ -311,6 +312,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 				if(ALL_SYMBOLS.equalsIgnoreCase(symbol.trim()) && FORCE_DELETE.equals(force.trim())) {
 					stockService.deleteAllStockInfo(userName);
 					response = createResponse("Stock Symbol not exits in datasource.",Optional.of(new ArrayList<StockInfo>()));
+					deleteAll = true;
 				}else {
 					stock = stockService.getStockInfoBySymbolAndUser(symbol,userName);
 					if(stock != null) {
@@ -334,7 +336,10 @@ public class StockAPIController extends StockAPIControllerUtilities{
 			if(stock!=null) {
 				response = createResponse("Successfully deleted",Optional.of(stock));
 			}else { 
-				response = createResponse("Stock Symbol not exits in datasource.",Optional.of(new ArrayList<StockInfo>()));
+				//In case of delete all the stock input is null, since all stock for user will be deleted
+				if(!deleteAll) {
+  				   response = createResponse("Stock Symbol not exits in datasource.",Optional.of(new ArrayList<StockInfo>()));
+				}
 			}
 			return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 		}catch(Exception e) {
@@ -344,6 +349,9 @@ public class StockAPIController extends StockAPIControllerUtilities{
 		}
 	}
 
+	@Operation(description="This end-point will update list of stock for valid symbol in input list, and if there is any new symbol gets added to db, update to count or average price will be updated in db."
+			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
+			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@PutMapping("/update/stocks")
 	public ResponseEntity<ApiAppResponse> updateStocks(@RequestBody List<StockInfoWrapper> stockList, HttpServletRequest request){
 
@@ -389,10 +397,13 @@ public class StockAPIController extends StockAPIControllerUtilities{
 						.collect(Collectors.toList());
 
 				if(newStockInfoSymbolFromInputLst.isEmpty()) {
-					response = createResponse("All Stocks are already upto date in the database.", Optional.of(new ArrayList<StockInfo>()));
-					return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
+					//response = createResponse("All Stocks are already upto date in the database.", Optional.of(new ArrayList<StockInfo>()));
+					//return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 				}
-				List<StockInfo> stockInfoOutput = stockService.storeStocks(newStockInfoSymbolFromInputLst);
+				List<StockInfo> stockInfoOutput = new ArrayList<>();
+				if(!newStockInfoSymbolFromInputLst.isEmpty()) {
+				  stockInfoOutput = stockService.storeStocks(newStockInfoSymbolFromInputLst);
+				}
 
 				//Check if there are any updates in the input stock list stock count or avg value and update it in db
 				List<StockInfo> inputStockInfoExistsInDBToIdentifyChanges = filteredInputList.stream()
@@ -401,14 +412,15 @@ public class StockAPIController extends StockAPIControllerUtilities{
 						.collect(Collectors.toList());
 				
 				//Pass the input stock list, as first argument, then pass the stock list from db, so it will filter
-				// and provide the input list filterd out.
+				// and provide the input list filtered out.
 				List<StockInfo> stockToBeUpdateList = filterInputAndDBStock.apply(inputStockInfoExistsInDBToIdentifyChanges,stockInfoFromDatabase);
 				if(stockToBeUpdateList!=null && !stockToBeUpdateList.isEmpty()) {
+					stockInfoOutput.addAll(stockToBeUpdateList);
 					stockToBeUpdateList.forEach(stockInfoItem -> {
 						try {
-							stockService.save(stockInfoItem);
+							stockService.updateStock(stockInfoItem);
 						} catch (Exception e) {
-							throw new RuntimeException("Exception occurred in updating the stock.",e); 
+							throw new RuntimeException("Exception occurred in updating the stock."+e.getMessage(),e); 
 						}
 					});
 				}

@@ -1,20 +1,23 @@
 # stock-api
-Stock api to monitor the financial profit loss
+Stock api project is a backend project used simply to monitor the financial profit loss
+  - This app requires to sign up the user, currently used only for personal use
 
 - Warning:
   - The database is not a persistent database (currently H2 database)
-
 
  - In order to access this api, use below end-point to signup
    - This endpoint will store the user info in H2 DB
 
 ##### End-point to `signup`
+
 ```
 ## POST
  
 /stock-app/signup
 ```
- - INPUT: Provide username and password in the body of POST request
+
+ - INPUT: 
+   - Provide username and password in the body of POST request
 
 ```json
  {
@@ -23,7 +26,9 @@ Stock api to monitor the financial profit loss
  }
 ``` 
 
-- OUTPUT: Response
+- OUTPUT: 
+   - Response
+
 
 ```json
 {
@@ -42,7 +47,8 @@ Stock api to monitor the financial profit loss
 /stock-app/token
 ```
 
- - INPUT: Use signed up username and provided apiKey info in the body of POST request
+ - INPUT: 
+   - Use signed up username and provided apiKey info in the body of POST request
 
 ```json 
  {
@@ -51,7 +57,8 @@ Stock api to monitor the financial profit loss
  }
 ```
 
- - OUTPUT: jwt token in Json repsonse
+ - OUTPUT: 
+   - jwt token in JSON repsonse
  
 ```json 
 {
@@ -60,17 +67,19 @@ Stock api to monitor the financial profit loss
 }
 ```
 
-##### To retrieve the API key using username and password and generate jwt token
+##### To retrieve the API key use username and password, which will also generate jwt token
 
   - Once `signed up` with the user name
   - Hit the below end point, to get the API key and generated jwt token
 
 ```
-## POST 
+ ## POST 
 /stock-app/apikey
+
 ```
 
- - INPUT: username and password info in the body of POST request
+  - INPUT: 
+    - username and password info in the body of POST request
 
 ```json 
  {
@@ -79,7 +88,8 @@ Stock api to monitor the financial profit loss
  }
 ```
 
- - OUTPUT: jwt token in Json repsonse
+ - OUTPUT: 
+   - jwt token in Json repsonse
  
 ```json 
 {
@@ -104,7 +114,8 @@ Stock api to monitor the financial profit loss
 /stock/v1/add
 ````
 
- - INPUT: json input to be sent in the body of the POST request
+ - INPUT: 
+   - json input to be sent in the body of the POST request
    - use the same structure
 
 ```json
@@ -115,7 +126,8 @@ Stock api to monitor the financial profit loss
 }
 ```
 
- - Output: JSON response after added the stock info to DB
+ - Output: 
+   - JSON response after added the stock info to DB
  
 ```json 
 {
@@ -143,7 +155,8 @@ Stock api to monitor the financial profit loss
 /stock/v1/add/stocks
 ```
 
- - INPUT: Pass the below json structure in the body of POST Http request.
+ - INPUT: 
+  - Pass the below json structure in the body of POST Http request.
   - Use the generated JWT token to access the end-point, like below
 
 ```
@@ -196,23 +209,82 @@ Stock api to monitor the financial profit loss
      }]
 }
 ```
+
+##### To update the list of stock info, either by using the same list with updates on the stock count and stock average price
+
+```
+## PUT 
+/stock/v1/update/stocks
+
+```
+
+ - INPUT:
+   - Use the generated JWT token to access the end-point, like below
+
+```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"
+```
+
+  - MSFT (already exists in the system no change); GE (updated with stock count); GM (new stock to be updated)
+  
+```json
+ [
+	{
+		"symbol": "MSFT",
+		"stockCount": "10.50",
+		"avgStockPrice": "150.25"
+	},
+	{
+		"symbol": "GE",
+		"stockCount": "10.79",
+		"avgStockPrice": "12.55"
+	},
+	{
+		"symbol": "GM",
+		"stockCount": "10.796152",
+		"avgStockPrice": "10.55"
+	}
+]
+```
+ 
+  - OUTPUT:
+
+```json
+{
+    "status": "Successfully updates the stock info",
+    "stockInfo": [
+        {
+            "symbol": "GE",
+            "avgStockPrice": 10.79,
+            "stockCount": 12.55
+        },
+        {
+            "symbol": "GM",
+            "avgStockPrice": 10.796152,
+            "stockCount": 10.55
+        }
+    ]
+}
+```
+
 ##### To get the stock details with computed metrics use below end-point
   - The list of stock info stored under the specific user will be computed and displayed in the response
-  - Pass the JWT token part of the POST request header.
+  
+  - INPUT
+    - Pass the JWT token part of the POST request header.
 
 ```
    Authorization : Bearer xxxxx.yyyy.zzzz
    Content-Type : "application/json"  
 ```
   
-  
 ```
 ## POST Endpoint with header Authorization token
 /stock/v1/stock-info
 ```
+  - OUTPUT:
    
- - OUTPUT : Below is the sample output rendered
- 
 ```json
 {
     "stockInfo": [
@@ -245,6 +317,22 @@ Stock api to monitor the financial profit loss
     "simpleStatus": "Successfully computed."
 }
 ```
+
+#### Endpoint to delete all stocks for specific user
+
+  - INPUT
+    - Pass the JWT token part of the POST request header.
+
+```
+   Authorization : Bearer xxxxx.yyyy.zzzz
+   Content-Type : "application/json"  
+```
+
+```
+## DELETE REQUEST 
+/stock/delete/all-symbols/force
+```
+
 
 #####  Swagger open api v3 - access
 
