@@ -71,4 +71,14 @@ public class StockStoreServiceImpl implements StockStoreService{
 		return stockStoreRepository.findBySymbolAndUserName(symbol, userName);
 	}
 
+	@Override
+	public void deleteAllStockInfo(String userName) throws Exception {
+		stockStoreRepository.deleteAllStockForUserName(userName);
+	}
+
+	@Override
+	public StockInfo save(StockInfo stock) throws Exception {
+		return stockStoreRepository.save(stock);
+	}
+
 }
