@@ -1,6 +1,5 @@
 package com.stock.finance.controller;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,9 +18,6 @@ import com.stock.finance.model.StockInfo;
 import com.stock.finance.model.StockInfoWrapper;
 import com.stock.finance.model.api.ApiAppResponse;
 
-import lombok.extern.log4j.Log4j2;
-
-@Log4j2
 public class StockAPIControllerUtilities {
 	
 	//object mapper to serialize json string 

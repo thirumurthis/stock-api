@@ -1,23 +1,19 @@
 package com.stock.finance;
 
-import java.util.ArrayList;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.util.Assert;
 
-import io.jsonwebtoken.lang.Assert;
 
-@SpringBootTest
+//@SpringBootTest
 class StockBackendApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
 
 	@Test
 	public void streamCheckTest() {

@@ -12,4 +12,7 @@ public interface StockStoreService {
 	StockInfo getStockInfoBySymbolAndUser(String symbol,String userName) throws Exception;
 	void softDeleteStockInfo(String symbol,String userName, boolean softdelete) throws Exception;
 	void deleteStockInfo(String symbol,String userName) throws Exception;
+	void deleteAllStockInfo(String userName) throws Exception;
+	StockInfo save(StockInfo stock) throws Exception;
+	
 }

@@ -3,12 +3,14 @@ package com.stock.finance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.Assert;
 
+import com.stock.finance.controller.StockAPIController;
 import com.stock.finance.controller.StockAPIControllerUtilities;
 import com.stock.finance.model.StockInfo;
 import com.stock.finance.model.StockInfoWrapper;
@@ -105,5 +107,39 @@ public class TestStockApiController {
         stockInputList.add(stock4);
 		return stockInputList;
 	}
-
+	
+   @Test
+   public void testCompareListTest () {
+	   // Stock info from input 
+       StockInfo stock1 = new StockInfo(1,"MFST",10.0f,10,"1",true);
+       StockInfo stock2 = new StockInfo(2,"TWTR",10.0f,10,"1",true);
+       StockInfo stock3 = new StockInfo(3,"INTC",10.0f,10,"1",true);
+       StockInfo stock4 = new StockInfo(4,"GM",10.0f,10,"1",true);
+       
+        List<StockInfo> stockInputList = new ArrayList<>();
+        stockInputList.add(stock1);
+        stockInputList.add(stock2);
+        stockInputList.add(stock3);
+        stockInputList.add(stock4);
+        
+        // Stock from database
+        StockInfo stockDB1 = new StockInfo(1,"MFST",10.0f,10,"1",true);
+        StockInfo stockDB2 = new StockInfo(2,"TWTR",11.0f,10,"1",true);
+        StockInfo stockDB3 = new StockInfo(3,"INTC",10.0f,13,"1",true);
+        StockInfo stockDB4 = new StockInfo(4,"GM",10.0f,10,"1",true);
+        
+        List<StockInfo> stockDBList = new ArrayList<>();
+        stockDBList.add(stockDB1);
+        stockDBList.add(stockDB2);
+        stockDBList.add(stockDB3);
+        stockDBList.add(stockDB4);
+        
+    	StockAPIController controller = new StockAPIController();
+    	
+    	//Expected TWTR and INTC are updated
+    	List<StockInfo> output = controller.getFilterInputAndDBStock().apply(stockInputList,stockDBList);
+    	//output.forEach(System.out::println);
+    	Assert.isTrue(!output.isEmpty() && output.size() >=2 && "TWTR".equals(output.get(0).getSymbol()) && output.get(0).getAvgStockPrice()==10.0f,"Expected TWTR symbol.");
+    	Assert.isTrue(!output.isEmpty() && output.size() >=2 && "INTC".equals(output.get(1).getSymbol()) && output.get(1).getStockCount() == 10.0f,"Expected INTC symbol.");
+   }
 }

@@ -31,7 +31,6 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	       nativeQuery = true)
 	int updateStockCountAveragePrice(@Param("symbol") String symbol,@Param("count") int count, @Param("average_cost") float average_cost);
 	
-	
 	@Modifying
 	@Transactional
 	// using positional parameter for mapping the value
@@ -43,5 +42,10 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	// using positional parameter for mapping the value
 	@Query(value="update STOCK_STORE set active = ?3 where stock_symbol = ?1 and user_name = ?2 ",nativeQuery = true)
 	void softDeleteStockInfo(String stockSymbol,String userName, boolean isActive);
+	
+	@Modifying
+	@Transactional
+	@Query(value="delete from STOCK_STORE where user_name =?1", nativeQuery = true)
+	void deleteAllStockForUserName(String userName);
 
 }
