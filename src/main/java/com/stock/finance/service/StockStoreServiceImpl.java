@@ -77,8 +77,12 @@ public class StockStoreServiceImpl implements StockStoreService{
 	}
 
 	@Override
-	public StockInfo save(StockInfo stock) throws Exception {
-		return stockStoreRepository.save(stock);
+	public int updateStock(StockInfo stock) throws Exception {
+		if(stock != null) {
+		  return stockStoreRepository.updateStockCountAveragePrice(stock.getSymbol(),stock.getStockCount(),stock.getAvgStockPrice(),stock.getUserName());
+		}else {
+			return 0;
+		}
 	}
 
 }

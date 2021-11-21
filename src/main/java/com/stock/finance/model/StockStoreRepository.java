@@ -27,9 +27,10 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	// note transaction will add being and end also commit after update operation
 	// ideally if we use this annotation at the service layer, we can perform group of operation
 	@Transactional
-	@Query(value = "update STOCK_STORE set stock_count = :count, average_price = :average_cost where stock_symbol = :symbol",
+	@Query(value = "update STOCK_STORE set stock_count = :count, average_price = :average_cost where stock_symbol = :symbol and user_name = :username",
 	       nativeQuery = true)
-	int updateStockCountAveragePrice(@Param("symbol") String symbol,@Param("count") int count, @Param("average_cost") float average_cost);
+	int updateStockCountAveragePrice(@Param("symbol") String symbol,@Param("count") float count, @Param("average_cost") float average_cost,
+			                         @Param("username") String userName);
 	
 	@Modifying
 	@Transactional
@@ -47,5 +48,7 @@ public interface StockStoreRepository extends JpaRepository<StockInfo, Integer>{
 	@Transactional
 	@Query(value="delete from STOCK_STORE where user_name =?1", nativeQuery = true)
 	void deleteAllStockForUserName(String userName);
+	
+	
 
 }
