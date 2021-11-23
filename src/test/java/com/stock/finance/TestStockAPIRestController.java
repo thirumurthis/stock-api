@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -71,6 +72,7 @@ import static org.mockito.BDDMockito.*;
 //@SpringBootTest
 //@DataJpaTest
 @WebMvcTest(controllers = StockAPIController.class)
+@AutoConfigureMockMvc(addFilters = false)
 //(StockAPIController.class,)
 //@SpringBootTest(
 //	    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -81,7 +83,7 @@ import static org.mockito.BDDMockito.*;
     DirtiesContextTestExecutionListener.class,
     WithSecurityContextTestExecutionListener.class })
     */
-@Disabled
+//@Disabled
 public class TestStockAPIRestController {
 
 	//@Autowired
@@ -101,7 +103,9 @@ public class TestStockAPIRestController {
 	private JWTManagerService jwtMangerService; // = new JWTManagerService();
     
     @MockBean
-    JwtRequestFilter jwtRequestFilter;
+   // @InjectMocks
+    //@Autowired
+    JwtRequestFilter jwtRequestFilter;// = new JwtRequestFilter();;
     
     @MockBean
     ComputeStockMetricsService metricsService;
@@ -121,7 +125,7 @@ public class TestStockAPIRestController {
         		.apply(springSecurity())
         		.addFilters(jwtRequestFilter)
         		.build();
-        
+            
         //mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
        // MockitoAnnotations.initMocks(this);
     }
@@ -139,7 +143,7 @@ public class TestStockAPIRestController {
 		MockHttpServletRequest req = new MockHttpServletRequest();
 		MockHttpServletResponse res = new MockHttpServletResponse();
 		MockFilterChain chain = new MockFilterChain();
-		//when(jwtRequestFilter.doFilter(req, res, chain)).thenReturn();
+		//when(jwtRequestFilter.doFilter(req, res, chain)).willReturn();
 		MockHttpServletRequestBuilder request = get("/stock-app/about");
 		//		.secure(false);
        // jwtRequestFilter.doFilter(req, res, chain);
