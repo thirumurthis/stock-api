@@ -1,4 +1,4 @@
-package com.stock.finance;
+package com.stock.finance.client;
 
 import java.io.IOException;
 import java.net.URI;

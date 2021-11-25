@@ -16,7 +16,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Service
 public class JWTManagerService {
 
-	@Value("${jwt.secret.key:stockServiceApi$ecretKey}")
+   @Value("${jwt.secret.key:stockServiceApi$ecretKey}")
    private String SECRET_KEY;
    
    public String extractUserName(String token){
