@@ -1,7 +1,7 @@
 ### Learnings during the deployment.
 
 ##### In order to make use of in-Memory H2  for testing then use application.properties under the test/java/resources
-      - Also make a note that the H2 dependencies should be scope testing
+      - Also make a note that the H2 dependencies should be of scope test.
 
 ##### Developing integration test cases with Feign Client
    - Faced error since didn't include the feign-okhttp client dependency jar.
@@ -77,3 +77,10 @@ Caused by: java.net.UnknownHostException: my-stock-boot-app.herokuapp.com
 
 ##### Enhancement idea:
   - Include Log4j2 MDC, for better handling the request per user.
+  
+##### If need to create a container for AKS.
+  - Use config-map, to pass necessary config as env variables.
+  - Also, we tracking the logs from the container we can use Elastic Search.
+  - with logback-spring.xml, to configure the Elastic appender (from, internetitem package)
+  - Log42j also supports, elastic search appender.
+  - With appropriate configuration, the logs can be pushed to elastic search. With profile configuration we get granular control
