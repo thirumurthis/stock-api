@@ -15,5 +15,5 @@ public class SimpleStatusResponse {
 
 	private String statusMessage;
 	private String apiKey;
-	
+	private String userId;
 }

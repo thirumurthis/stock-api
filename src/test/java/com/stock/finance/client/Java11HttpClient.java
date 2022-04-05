@@ -1,30 +1,26 @@
 package com.stock.finance.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-
-import com.stock.finance.model.api.About;
-
 /*
- * Java 11 http client apporach to perform integration test
+ * Java 11 http client approach to perform integration test
  */
 public class Java11HttpClient {
 	
 	@Test
-	@Disabled
+	//@Disabled
 	public void getEntitiesFromAPI() {
 		
 		//Create http client 
@@ -34,7 +30,7 @@ public class Java11HttpClient {
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://my-stock-boot-app.herokuapp.com/stock-app/about"))
 				     .build();
 		// Send request and receive response
-		//Convert the repsonse as a string, which can also be a About object - use BodyHandlers to convert
+		//Convert the response as a string, which can also be a About object - use BodyHandlers to convert
 		try {
 			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 			assertEquals(200, response.statusCode());
@@ -58,7 +54,7 @@ public class Java11HttpClient {
 				.POST(BodyPublishers.ofString("{\"username\":\"user\",\"password\":\"password\"}"))
 				.build();
 		// Send request and receive response
-		//Convert the repsonse as a string, which can also be a About object - use BodyHandlers to convert
+		//Convert the response as a string, which can also be a About object - use BodyHandlers to convert
 		try {
 			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 			assertEquals(200, response.statusCode());
@@ -68,6 +64,4 @@ public class Java11HttpClient {
 			assertTrue(false);
 		}
 	}
-
-
 }
