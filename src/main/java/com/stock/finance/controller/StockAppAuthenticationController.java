@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,6 +62,7 @@ public class StockAppAuthenticationController {
 	@Operation(description="This end-point is used to provide api key and token when user name and password passed in POST request body.",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= AuthenticationResponse.class)))})
 	@PostMapping("/apikey")
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	public ResponseEntity<?> getApiKey(@RequestBody AuthenticationRequest authenticationRequest) throws Exception{
 
 	 final String currentDate = dateFormatter.format(LocalDateTime.now());
@@ -87,7 +89,7 @@ public class StockAppAuthenticationController {
 			}
 			
 			return ResponseEntity.ok(AuthenticationResponse.builder().status("Token generated at "+currentDate)
-					                    .jwtToken(jwt).apiKey(userDetails.getApiKey()).build());
+					                    .jwtToken(jwt).apiKey(userDetails.getApiKey()).userId(userDetails.getUsername()).build());
 		}else {
 			log.warn("[getApiKey] userDetails is null for some reason");
 			return ResponseEntity.ok(AuthenticationResponse.builder().status("User info not available "+currentDate).jwtToken(jwt));
@@ -100,6 +102,7 @@ public class StockAppAuthenticationController {
 	@Tag(name="Signup", description="Use this the sign up for API.")
 	@Operation(description="This end-point is used to register or sign-up the user to access the API.",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= SimpleStatusResponse.class)))})
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@PostMapping("/signup")
 	public ResponseEntity<?> signUpUser(@RequestBody AuthenticationRequest userInfo) {
 		try {
@@ -110,6 +113,7 @@ public class StockAppAuthenticationController {
 					if(userFromDB!=null && userFromDB.contains(userInfo.getUserName())) {
 						return new ResponseEntity<>(SimpleStatusResponse.builder()
 								                       .statusMessage("Hi, "+userFromDB+ " already a registered user, use /apikey endpoint for API key.")
+								                       .userId(userFromDB)
 								                       .build(),HttpStatus.OK);
 					}
 				}
@@ -133,6 +137,7 @@ public class StockAppAuthenticationController {
 				return new ResponseEntity<>(SimpleStatusResponse.builder()
 						                         .statusMessage("Welcome "+ storedUserName.getUserName() +" !!!, successfully signed up. Use API key to generate token.")
 						                         .apiKey(storedUserName.getApiKey())
+						                         .userId(storedUserName.getUserName())
 						                         .build(),HttpStatus.OK); 
 			}else {
 				log.warn("/singup endpoint invoked, the user info object is null");
@@ -149,6 +154,7 @@ public class StockAppAuthenticationController {
 	@Operation(description="This end-point is used to provide the token when API key is passed in POST request body.",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= AuthenticationResponse.class)))})
 	@PostMapping("/token")
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	public ResponseEntity<?> generateTokenWithApiKeyAndUserName(@RequestBody TokenRequest authenticationRequest){
 
 		String jwt = null;
@@ -168,6 +174,7 @@ public class StockAppAuthenticationController {
 					return new ResponseEntity<>(AuthenticationResponse.builder()
 							                      .status("Username or password doesn't exists.")
 							                      .jwtToken(jwt)
+							                      .userId(userFromDB.getUserName())
 							                      .build()
 							                      ,HttpStatus.OK);
 				}

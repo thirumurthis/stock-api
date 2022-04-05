@@ -8,7 +8,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,6 +79,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 			+ "token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
 			responses = { @ApiResponse(content = @Content(array=@ArraySchema(schema=@Schema(implementation= StockInfoWrapper.class))))})
 	@GetMapping("/get")
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	public ResponseEntity<List<StockInfoWrapper>> getStockInfoFromDataStore(HttpServletRequest request) {
 		try {
 
@@ -117,6 +118,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@PostMapping("/add")
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	public ResponseEntity<ApiAppResponse> addStock(@RequestBody StockInfoWrapper stock,HttpServletRequest request){
 		ApiAppResponse response;
 		try {
@@ -263,6 +265,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 	@Operation(description="This end-point will return the stock information computed for the invested amount and returns details as response."
 			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ComputedStockOuputWrapper.class)))})
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@PostMapping("/stock-info")
 	public ResponseEntity<?> getComputedStockDetails(HttpServletRequest request) {
 
@@ -297,6 +300,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 					@Parameter(in= ParameterIn.PATH, name = "force",required = false, description = "Optional value, when provided deletes the stock symbol completely from database.")},
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@DeleteMapping("/delete/{symbol}/{force}")
+	@CrossOrigin
 	public ResponseEntity<ApiAppResponse> deleteStock(@PathVariable("symbol") String symbol,@PathVariable("force") String force, HttpServletRequest request){
 		ApiAppResponse response = null;
 		StockInfo stock = null;
@@ -353,6 +357,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 			+ "Token is required for access. Use HTTP request header Authorization: Bearer xxx.yyy.zzz",
 			responses = { @ApiResponse(content = @Content(schema=@Schema(implementation= ApiAppResponse.class)))})
 	@PutMapping("/update/stocks")
+	@CrossOrigin
 	public ResponseEntity<ApiAppResponse> updateStocks(@RequestBody List<StockInfoWrapper> stockList, HttpServletRequest request){
 
 		// Duplicate code similar to add stock, re-factor if possible latter.
@@ -379,7 +384,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 				List<StockInfoWrapper> filteredInputList = filterDuplicateStockInfo(stockList);
 
 				if(filteredInputList.isEmpty()) {
-					throw new Exception("The input contains duplicate symbols "+symbolsVal +" , consolidate it.");
+					throw new Exception("Duplicate symbols identified "+symbolsVal +" , consolidate it.");
 				}
 
 				// Fetch the list of Stocks if already available in database
@@ -425,7 +430,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 					});
 				}
 
-				String status = "Successfully updates the stock info";
+				String status = "Successfully updated the stock info";
 				if(!"".equals(symbolsVal)) {
 					status += " - Duplicate symbols identified, not insterted to database - ["+symbolsVal+ "], Please consolidate it.";
 				}
@@ -433,7 +438,7 @@ public class StockAPIController extends StockAPIControllerUtilities{
 				return new ResponseEntity<ApiAppResponse>(response,HttpStatus.OK);
 
 			}else {
-				throw new Exception("Input stock List is empty or Token might have been expired.");
+				throw new Exception("Input empty input or Token might have been expired.");
 			}
 
 		}catch(Exception e) {

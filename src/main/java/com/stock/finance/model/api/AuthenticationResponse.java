@@ -14,6 +14,7 @@ import lombok.Setter;
 public class AuthenticationResponse {
 
 	private String status ;
+	private String userId;
 	private String jwtToken ;
 	private String apiKey ;
 }

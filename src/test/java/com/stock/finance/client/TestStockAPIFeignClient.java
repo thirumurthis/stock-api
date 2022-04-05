@@ -21,7 +21,7 @@ import feign.jackson.JacksonEncoder;
 
 // the feign interface is already defined in the test package
 // this test class will be using the interface to invoke the stock app
-@Disabled
+//@Disabled
 @SpringBootTest
 public class TestStockAPIFeignClient {
 	
@@ -57,7 +57,7 @@ public class TestStockAPIFeignClient {
 	}
 	
 	@Test
-	@Disabled
+	//@Disabled
 	// This test case only for the very first user.
 	void testSignUpAndGetStock() {
 		
@@ -76,9 +76,9 @@ public class TestStockAPIFeignClient {
 	     Assertions.assertNotNull(apiKeyRespsone.getApiKey());
 	     Assertions.assertTrue(apiKeyRespsone.getStatusMessage().contains(user));
 	     
-	     //2
+	     //2. Get the api key 
 	     String apiKey = apiKeyRespsone.getApiKey();
-	     //3
+	     //3 
 	     TokenRequest tokenRequest = new TokenRequest(user,apiKey);
 	    
 	      AuthenticationResponse tokenResponse = client.getToken(tokenRequest);
