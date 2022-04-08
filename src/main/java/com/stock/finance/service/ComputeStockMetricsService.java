@@ -128,6 +128,7 @@ public class ComputeStockMetricsService {
 				ComputeStockMetrics stockDetails = new ComputeStockMetrics();
 				stockDetails.setLastAccessed(LocalDateTime.now());
 				stockDetails.setSymbol(element.getSymbol());
+				stockDetails.setStockCount(element.getStockCount());
 				//get the latest price of the stock symbol
 				stockDetails.setCurrentPrice(stockWrapper!=null?stockWrapper.getPrice().floatValue():0.0f);
 				stockDetails.setCompanyName(

@@ -9,6 +9,7 @@ import lombok.Data;
 public class ComputeStockMetrics {
 
 	private String symbol;
+	private float stockCount;
 	private float currentPrice;
 	private String companyName;
 	private LocalDateTime lastAccessed;
